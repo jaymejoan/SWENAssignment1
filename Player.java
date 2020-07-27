@@ -17,6 +17,7 @@ public class Player
 //    private TokenChar tokenChar;
     private Game game;
     private HashSet<Card> cards = new HashSet<>();
+    Map<String,List<Card>> knowCards = new HashMap<>();
 
     //------------------------
     // CONSTRUCTOR
@@ -72,10 +73,12 @@ public class Player
     }
 
     // line 14 "model.ump"
-    public Card suggest(CardChar character , CardRoom room , CardWeapon weapon,Player other){
-        System.out.println("other player hands:  " + other.cards);
-        return other.refute(character,room,weapon,other);
-    }
+    public void suggest(CardChar character , CardRoom room , CardWeapon weapon,Player other){
+      Card card =  other.refute(character,room,weapon);
+      if(card != null){
+          knowCards.get(card.getType()).add(card);
+      }
+  }
 
     // line 17 "model.ump"
     public Card refute(CardChar character , CardRoom room , CardWeapon weapon,Player other){
