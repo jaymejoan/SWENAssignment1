@@ -1,5 +1,4 @@
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
@@ -7,9 +6,14 @@ import java.util.concurrent.ThreadLocalRandom;
  */
 public class Game {
 
-    String[] cardNames = new String[]{"Miss Scarlet", "Rev Green", "Colonel Mustard", "Professor Plum", "Mrs Peacock", "Dr Orchid",
+    private final String[] cardNames = new String[]{"Miss Scarlet", "Rev Green", "Colonel Mustard", "Professor Plum", "Mrs Peacock", "Dr Orchid",
             "Candlestick", "Dagger", "Lead Pipe", "Revolver", "Rope", "Wrench",
             "Kitchen", "Ballroom", "Conservatory", "Dining Room", "Billiard Room", "Library", "Lounge", "Hall", "Study"};
+
+    private final String[] playerNames = new String[]{"Player1", "Player2", "Player3", "Player4", "Player5", "Player6"};
+
+
+    ;
 
     //    ArrayList<Card> cards = new ArrayList<>();
 
@@ -22,6 +26,7 @@ public class Game {
     HashMap<String, CardRoom> roomCards = new HashMap<>();
 
     ArrayList<Card> winningDeck = new ArrayList<>();
+    ArrayList<Card> fullDeck = new ArrayList<>();
     ArrayList<Player> players = new ArrayList<>();
 
 
@@ -36,13 +41,10 @@ public class Game {
      */
     public Game(int numOfPlayers) {
 
-        // initialise players
-//        for (int i = 0; i <= numOfPlayers; i++)
-//            players.add(new Player());
-
         // initialise Character cards
-        for (int i = 0; i <= 5; i++)
+        for (int i = 0; i <= 5; i++) {
             charCards.put(cardNames[i], new CardChar(cardNames[i]));
+        }
 
         // initialise Weapon cards
         for (int i = 6; i <= 11; i++)
@@ -52,11 +54,25 @@ public class Game {
         for (int i = 12; i < cardNames.length; i++)
             roomCards.put(cardNames[i], new CardRoom(cardNames[i]));
 
+
 //        for (int i = 0; i < cards.size(); i++)
 //            System.out.println(i + " name: " + cards.get(i).getNameOfCard() + " type: " + cards.get(i).toString());
 
         createWinningDeck();
-        dealCards();
+
+        // add remaining cards to deck
+        fullDeck.addAll(charCards.values());
+        fullDeck.addAll(weaponCards.values());
+        fullDeck.addAll(roomCards.values());
+
+        ArrayList<HashSet<Card>> deck = dealCards(numOfPlayers);
+
+        // initialise players
+        for (int i = 0; i < numOfPlayers; i++) {
+            players.add(new Player(playerNames[i], 0, 0, deck.get(i)));
+            System.out.println("player: " + i + " deck: " + deck.get(i).toString());
+        }
+
 
     }
 
@@ -101,15 +117,31 @@ public class Game {
 
     /**
      * Evenly deals the remaining cards among the players.
+     *
+     * @return
      */
-    public void dealCards() {
+    public ArrayList<HashSet<Card>> dealCards(int numOfPlayers) {
 
-        // deal Character cards (draft)
-//        for (CardChar c : charCards.values()) {
-//            for (Player p : players) {
-//                p.addCard(c);
-//            }
-//        }
+        Collections.shuffle(fullDeck);
+
+        ArrayList<HashSet<Card>> decks = new ArrayList<>();
+        int count = 0;
+
+        // create HashSet for each Player
+        for (int i = 0; i < numOfPlayers; i++)
+            decks.add(new HashSet<>());
+
+
+        // distribute cards
+        for (Card card : fullDeck) {
+            count = count == numOfPlayers ? 0 : count;
+            decks.get(count).add(card);
+            count++;
+        }
+
+        System.out.println("Cards have been handed out.");
+
+        return decks;
 
     }
 
@@ -144,20 +176,72 @@ public class Game {
      */
     public void runGame() {
 
+        // ask user input for suggest
+
+        try {
+            Scanner scan = new Scanner(System.in);
+            System.out.println("Suggest a Character : ");
+            String character = scan.next();
+            System.out.println("Suggest a Room : ");
+            String room = scan.next();
+            System.out.println("Suggest a Weapon : ");
+            String weapon = scan.next();
+
+            scan.close();
+//            break;
+        } catch (Exception e) {
+            System.out.println("Invalid input. Please enter a valid suggestion (make sure spelling is correct).\n");
+        }
+
+
+        Player p1 = players.get(0);
+        HashSet<Card> demo = new HashSet<>();
+        demo.add(charCards.get("Miss Scarlet"));
+        demo.add(roomCards.get("Kitchen"));
+        demo.add(weaponCards.get("Rope"));
+
+        Player p2 = new Player("b", 0, 0, demo);
+
+        Scanner scan = new Scanner(System.in);
+
+        Card card = p1.suggest(charCards.get("Miss Scarlet"), roomCards.get("Kitchen"), weaponCards.get("Rope"), p2);
+
+        if (card == null)
+            System.out.println("p2 does not have card");
+
+        System.out.println("card: " + card);
+
+
+        // player 1 move charToken
+
+        // player 1 suggest()
+
+        // player 2 refute()
+        // if no card -> move to player 3
+
+
     }
 
     public static void main(String... args) {
-        new Game(0).runGame();
+
+        while (true) {
+            try {
+                Scanner scan = new Scanner(System.in);
+                System.out.println("Select number of players in the game (2-6) : ");
+                int num = scan.nextInt();
+                new Game(num).runGame();
+                scan.close();
+                break;
+            } catch (Exception e) {
+                System.out.println("Invalid input. Please enter a number between 2-6.\n");
+            }
+        }
     }
-}
-
-/**
- * Dummy class to get rid of errors
- */
-class Player {
 
 
 }
+
+
 
 
 
