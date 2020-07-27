@@ -15,6 +15,8 @@ public class Card {
         return nameOfCard;
     }
 
+    public String getType(){ return "type";}
+
     public String toString() {
         return nameOfCard;
     }
@@ -28,6 +30,8 @@ class CardChar extends Card{
     public CardChar(String name) {
         super(name);
     }
+
+    public String getType(){ return "character";}
 
     public String toString() {
         return "Character Card";
@@ -43,6 +47,8 @@ class CardWeapon extends Card{
         super(name);
     }
 
+    public String getType(){ return "weapon";}
+
     public String toString() {
         return "Weapon Card";
     }
@@ -57,6 +63,8 @@ class CardRoom extends Card{
     public CardRoom(String name) {
         super(name);
     }
+
+    public String getType(){ return "room";}
 
     public String toString() {
         return "Room Card";
