@@ -17,16 +17,26 @@ public class Player
 //    private TokenChar tokenChar;
     private Game game;
     private HashSet<Card> cards = new HashSet<>();
-    Map<String,List<Card>> knowCards = new HashMap<>();
+    Map<String,HashSet<Card>> knowCards = new HashMap<>();
 
     //------------------------
     // CONSTRUCTOR
     //------------------------
 
-    public Player(String playerName, int x , int y, HashSet<Card> playerCards){
+    public Player(String playerName, int x , int y, HashSet<Card> playerCards,Game GAME){
         name = playerName;
         gameOver = false;
+        game = GAME;
         cards = playerCards;
+        String [] cardsType = {"character","room","weapon"};
+        for(String type : cardsType){
+            knowCards.put(type, new HashSet<>());
+        }
+        for(Card card : cards){
+            knowCards.get(card.getType()).add(card);
+        }
+
+
         //@todo link this player obj back to card
 //        tokenChar = new TokenChar(name,0,0); //number of player
         //@todo need to know where the player is going to start might need to add (x,y) in constructor
@@ -74,11 +84,45 @@ public class Player
 
     // line 14 "model.ump"
     public void suggest(CardChar character , CardRoom room , CardWeapon weapon,Player other){
-      Card card =  other.refute(character,room,weapon);
-      if(card != null){
-          knowCards.get(card.getType()).add(card);
-      }
-  }
+        Card card =  other.refute(character,room,weapon,other);
+        if(card != null){
+            knowCards.get(card.getType()).add(card);
+        }
+    }
+
+    public void displayCards(){
+        HashMap<String, Card> charCards = new HashMap<>(game.charCards);              // TODO: can rename to simply characters, weapons, rooms ?
+        HashMap<String, Card> weaponCards = new HashMap<>(game.weaponCards);
+        HashMap<String, Card> roomCards = new HashMap<>(game.roomCards);
+        for(Card card : game.winningDeck){
+            if(card instanceof CardChar){
+                charCards.put(card.getNameOfCard(),(CardChar) card);
+            } else if(card instanceof CardWeapon){
+                weaponCards.put(card.getNameOfCard(),(CardWeapon) card);
+            } else if(card instanceof CardRoom){
+                roomCards.put(card.getNameOfCard(),(CardRoom) card);
+            }
+        }
+        printCards("CHARACTER CARDS: ", "character",charCards);
+        printCards("WEAPON CARDS: ", "weapon",weaponCards);
+        printCards("ROOM CARDS: ", "room",roomCards);
+
+    }
+
+    public void printCards(String intro , String typeCard ,HashMap<String, Card> map){
+        System.out.println();
+        System.out.println(intro);
+        System.out.println(String.format("%-20s%-7s", "NAME" , "FOUND"));
+
+        for(String key : map.keySet()){
+            String found = "";  
+            if(knowCards.get(typeCard).contains(map.get(key))){
+                found = "  X";
+            }
+            System.out.println(String.format("%-20s%-7s", key , found));
+        }
+
+    }
 
     // line 17 "model.ump"
     public Card refute(CardChar character , CardRoom room , CardWeapon weapon,Player other){
@@ -137,4 +181,5 @@ public class Player
 //                "  " + "tokenChar = "+(getTokenChar()!=null?Integer.toHexString(System.identityHashCode(getTokenChar())):"null") + System.getProperties().getProperty("line.separator") +
                 "  " + "card = "+(getCard()!=null?Integer.toHexString(System.identityHashCode(getCard())):"null");
     }
+
 }
