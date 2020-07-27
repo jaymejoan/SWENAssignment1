@@ -30,7 +30,7 @@ class CardChar extends Card{
     }
 
     public String toString() {
-        return "Character Card";
+        return " " + super.getNameOfCard() + " ";
     }
 }
 
@@ -44,7 +44,7 @@ class CardWeapon extends Card{
     }
 
     public String toString() {
-        return "Weapon Card";
+        return " " + super.getNameOfCard() + " ";
     }
 
 }
@@ -59,6 +59,6 @@ class CardRoom extends Card{
     }
 
     public String toString() {
-        return "Room Card";
+        return " " + super.getNameOfCard() + " ";
     }
 }
