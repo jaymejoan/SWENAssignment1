@@ -2,8 +2,7 @@ import java.util.*;
 
 // line 8 "model.ump"
 // line 140 "model.ump"
-public class Player
-{
+public class Player {
 
     //------------------------
     // MEMBER VARIABLES
@@ -17,22 +16,22 @@ public class Player
 //    private TokenChar tokenChar;
     private Game game;
     private HashSet<Card> cards = new HashSet<>();
-    Map<String,HashSet<Card>> knowCards = new HashMap<>();
+    Map<String, HashSet<Card>> knowCards = new HashMap<>();
 
     //------------------------
     // CONSTRUCTOR
     //------------------------
 
-    public Player(String playerName, int x , int y, HashSet<Card> playerCards,Game GAME){
+    public Player(String playerName, int x, int y, HashSet<Card> playerCards, Game GAME) {
         name = playerName;
         gameOver = false;
         game = GAME;
         cards = playerCards;
-        String [] cardsType = {"character","room","weapon"};
-        for(String type : cardsType){
+        String[] cardsType = {"character", "room", "weapon"};
+        for (String type : cardsType) {
             knowCards.put(type, new HashSet<>());
         }
-        for(Card card : cards){
+        for (Card card : cards) {
             knowCards.get(card.getType()).add(card);
         }
 
@@ -47,109 +46,108 @@ public class Player
     // INTERFACE
     //------------------------
 
-    public boolean setGameOver(boolean aGameOver)
-    {
+    public boolean setGameOver(boolean aGameOver) {
         boolean wasSet = false;
         gameOver = aGameOver;
         wasSet = true;
         return wasSet;
     }
 
-    public String getName()
-    {
+    public String getName() {
         return name;
     }
 
-    public boolean getGameOver()
-    {
+    public boolean getGameOver() {
         return gameOver;
     }
+
     /* Code from template association_GetOne */
 //    public TokenChar getTokenChar()
 //    {
 //        return tokenChar;
 //    }
     /* Code from template association_GetMany */
-    public Game getGame()
-    {
+    public Game getGame() {
         return game;
     }
 
 
     /* Code from template association_GetOne */
-    public HashSet<Card> getCard()
-    {
+    public HashSet<Card> getCard() {
         return cards;
     }
 
     // line 14 "model.ump"
-    public void suggest(CardChar character , CardRoom room , CardWeapon weapon,Player other){
-        Card card =  other.refute(character,room,weapon,other);
-        if(card != null){
+    public boolean suggest(CardChar character, CardRoom room, CardWeapon weapon, Player other) {
+        Card card = other.refute(character, room, weapon, other);
+        if (card != null) {
             knowCards.get(card.getType()).add(card);
+            return true;
         }
+        return false;
     }
 
-    public void displayCards(){
+    public void displayCards() {
         HashMap<String, Card> charCards = new HashMap<>(game.charCards);              // TODO: can rename to simply characters, weapons, rooms ?
         HashMap<String, Card> weaponCards = new HashMap<>(game.weaponCards);
         HashMap<String, Card> roomCards = new HashMap<>(game.roomCards);
-        for(Card card : game.winningDeck){
-            if(card instanceof CardChar){
-                charCards.put(card.getNameOfCard(),(CardChar) card);
-            } else if(card instanceof CardWeapon){
-                weaponCards.put(card.getNameOfCard(),(CardWeapon) card);
-            } else if(card instanceof CardRoom){
-                roomCards.put(card.getNameOfCard(),(CardRoom) card);
+        for (Card card : game.winningDeck) {
+            if (card instanceof CardChar) {
+                charCards.put(card.getNameOfCard(), (CardChar) card);
+            } else if (card instanceof CardWeapon) {
+                weaponCards.put(card.getNameOfCard(), (CardWeapon) card);
+            } else if (card instanceof CardRoom) {
+                roomCards.put(card.getNameOfCard(), (CardRoom) card);
             }
         }
-        printCards("CHARACTER CARDS: ", "character",charCards);
-        printCards("WEAPON CARDS: ", "weapon",weaponCards);
-        printCards("ROOM CARDS: ", "room",roomCards);
+        printCards("CHARACTER CARDS: ", "character", charCards);
+        printCards("WEAPON CARDS: ", "weapon", weaponCards);
+        printCards("ROOM CARDS: ", "room", roomCards);
 
     }
 
-    public void printCards(String intro , String typeCard ,HashMap<String, Card> map){
+    public void printCards(String intro, String typeCard, HashMap<String, Card> map) {
         System.out.println();
         System.out.println(intro);
-        System.out.println(String.format("%-20s%-7s", "NAME" , "FOUND"));
+        System.out.println(String.format("%-20s%-7s", "NAME", "FOUND"));
 
-        for(String key : map.keySet()){
-            String found = "";  
-            if(knowCards.get(typeCard).contains(map.get(key))){
+        for (String key : map.keySet()) {
+            String found = "";
+            if (knowCards.get(typeCard).contains(map.get(key))) {
                 found = "  X";
             }
-            System.out.println(String.format("%-20s%-7s", key , found));
+            System.out.println(String.format("%-20s%-7s", key, found));
         }
 
     }
 
     // line 17 "model.ump"
-    public Card refute(CardChar character , CardRoom room , CardWeapon weapon,Player other){
+    public Card refute(CardChar character, CardRoom room, CardWeapon weapon, Player other) {
         List<Card> options = new ArrayList<>();
-        if(other.cards.contains(character)){
+        if (other.cards.contains(character)) {
             options.add(character);
         }
-        if(other.cards.contains(room)){
+        if (other.cards.contains(room)) {
             options.add(room);
         }
-        if(other.cards.contains(weapon)){
+        if (other.cards.contains(weapon)) {
             options.add(weapon);
         }
         int size = options.size();
-        if(size == 1){
+        if (size == 1) {            // other player has exactly one match
+            System.out.println(other.getName() + " has refuted " + options.get(0).getNameOfCard());
             return options.get(0);
-        } else if(size == 0){
+        } else if (size == 0) {     // other players has no matches
+            System.out.println(other.getName() + " does not have any matching cards.");
             return null;
-        } else {
-
+        } else {                    // other player has multiple matches and must choose one to refute
 
             //keep asking the user until there's a valid index
-            while(true) {
+            while (true) {
                 try {
                     Scanner scan = new Scanner(System.in);
-                    System.out.println("These are your options: " + options.toString() + "\n what would you like to refute ? Please select an index [ 1 , 2 , 3] : ");
-                    Card card = options.get(scan.nextInt()-1);
+                    System.out.println(other.getName() + " these are your options: " + options.toString() + "\n what would you like to refute ? Please select an index [ 1 , 2 , 3] : ");
+                    Card card = options.get(scan.nextInt() - 1);
                     scan.close();
                     return card;
                 } catch (Exception e) {
@@ -161,25 +159,24 @@ public class Player
     }
 
     // line 20 "model.ump"
-    public boolean accuse(CardChar character , CardRoom room , CardWeapon weapon){
+    public boolean accuse(CardChar character, CardRoom room, CardWeapon weapon) {
         return false;
 
     }
 
     // line 23 "model.ump"
-    public void move(){
+    public void move() {
         //will this just be changing rooms?
 
     }
 
 
-    public String toString()
-    {
-        return super.toString() + "["+
-                "name" + ":" + getName()+ "," +
-                "gameOver" + ":" + getGameOver()+ "]" + System.getProperties().getProperty("line.separator") +
+    public String toString() {
+        return super.toString() + "[" +
+                "name" + ":" + getName() + "," +
+                "gameOver" + ":" + getGameOver() + "]" + System.getProperties().getProperty("line.separator") +
 //                "  " + "tokenChar = "+(getTokenChar()!=null?Integer.toHexString(System.identityHashCode(getTokenChar())):"null") + System.getProperties().getProperty("line.separator") +
-                "  " + "card = "+(getCard()!=null?Integer.toHexString(System.identityHashCode(getCard())):"null");
+                "  " + "card = " + (getCard() != null ? Integer.toHexString(System.identityHashCode(getCard())) : "null");
     }
 
 }
