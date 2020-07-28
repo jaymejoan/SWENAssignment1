@@ -15,6 +15,10 @@ public class Card {
         return nameOfCard;
     }
 
+    public String getType() {
+        return "type";
+    }
+
     public String toString() {
         return nameOfCard;
     }
@@ -23,28 +27,36 @@ public class Card {
 /**
  * CardChar represents the six Character cards.
  */
-class CardChar extends Card{
+class CardChar extends Card {
 
     public CardChar(String name) {
         super(name);
     }
 
+    public String getType() {
+        return "character";
+    }
+
     public String toString() {
-        return "Character Card";
+        return super.getNameOfCard();
     }
 }
 
 /**
  * CardWeapon represents the six Weapon cards.
  */
-class CardWeapon extends Card{
+class CardWeapon extends Card {
 
     public CardWeapon(String name) {
         super(name);
     }
 
+    public String getType() {
+        return "weapon";
+    }
+
     public String toString() {
-        return "Weapon Card";
+        return super.getNameOfCard();
     }
 
 }
@@ -52,13 +64,17 @@ class CardWeapon extends Card{
 /**
  * CardRoom represents the nine Room cards.
  */
-class CardRoom extends Card{
+class CardRoom extends Card {
 
     public CardRoom(String name) {
         super(name);
     }
 
+    public String getType() {
+        return "room";
+    }
+
     public String toString() {
-        return "Room Card";
+        return super.getNameOfCard();
     }
 }
