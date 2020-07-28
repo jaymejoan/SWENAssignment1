@@ -6,11 +6,16 @@ import java.util.HashMap;
  */
 public class Tile {
     private int x, y;
+    public Boolean visited = false;
 
     public Tile(int x, int y) {
         this.x = x;
         this.y = y;
     }
+
+    public void setName(String name) {}
+
+    public void addDoor(int k, Door d) {}
 
     public int getX() {
         return x;
@@ -21,6 +26,10 @@ public class Tile {
     }
 }
 
+/**
+ * Blocked is a tile type that is completely inaccessible to any type of token
+ * Nothing may occupy it.
+ */
 class Blocked extends Tile {
 
     public Blocked(int x, int y) {
@@ -45,7 +54,7 @@ class Hallway extends Tile {
 class Room extends Tile{
     private String name;
     private ArrayList<Integer> Occupants; // Integer Placeholder
-    private HashMap<Integer, Door> doors;
+    private HashMap<Integer, Door> doors = new HashMap<>();
 
     public Room(int x, int y) {
         super(x,y);
@@ -83,17 +92,8 @@ class Room extends Tile{
  * a room/ room tile.
  */
 class Door extends Tile{
-    private int exitNum;
 
     public Door(int x, int y) {
         super(x,y);
-    }
-
-    public void setExitNum(int n) {
-        this.exitNum = n;
-    }
-
-    public int getExitNum() {
-        return this.exitNum;
     }
 }
