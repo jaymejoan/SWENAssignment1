@@ -1,139 +1,200 @@
-/*PLEASE DO NOT EDIT THIS CODE*/
-/*This code was generated using the UMPLE 1.30.0.5059.b674b8115 modeling language!*/
-
-
 import java.util.*;
 
 // line 8 "model.ump"
 // line 140 "model.ump"
-public class Player
-{
+public class Player {
 
-  //------------------------
-  // MEMBER VARIABLES
-  //------------------------
+    //------------------------
+    // MEMBER VARIABLES
+    //------------------------
 
-  //Player Attributes
-  private String name;
-  private boolean gameOver;
+    //Player Attributes
+    private String name;
+    private boolean gameOver;
 
-  //Player Associations
-  private TokenChar tokenChar;
-  private Game game;
-  private HashSet<Card> cards = new HashSet<>();
+    //Player Associations
+//    private TokenChar tokenChar;
+    private Game game;
+    private HashSet<Card> cards = new HashSet<>();
+    Map<String, HashSet<Card>> knownCards = new HashMap<>();
 
-  //------------------------
-  // CONSTRUCTOR
-  //------------------------
+    //------------------------
+    // CONSTRUCTOR
+    //------------------------
 
-  public Player(String playerName, int x , int y, HashSet<Card> playerCards){
-    name = playerName;
-    gameOver = false;
-    cards = playerCards;
-    //@todo link this player obj back to card
-    tokenChar = new TokenChar(name,0,0); //number of player
-    //@todo need to know where the player is going to start might need to add (x,y) in constructor
-    //@todo add Game object
-  }
-
-  //------------------------
-  // INTERFACE
-  //------------------------
-
-  public boolean setGameOver(boolean aGameOver)
-  {
-    boolean wasSet = false;
-    gameOver = aGameOver;
-    wasSet = true;
-    return wasSet;
-  }
-
-  public String getName()
-  {
-    return name;
-  }
-
-  public boolean getGameOver()
-  {
-    return gameOver;
-  }
-  /* Code from template association_GetOne */
-  public TokenChar getTokenChar()
-  {
-    return tokenChar;
-  }
-  /* Code from template association_GetMany */
-  public Game getGame()
-  {
-    return game;
-  }
+    public Player(String playerName, int x, int y, HashSet<Card> playerCards, Game GAME) {
+        name = playerName;
+        gameOver = false;
+        game = GAME;
+        cards = playerCards;
+        String[] cardsType = {"character", "room", "weapon"};
+        for (String type : cardsType) {
+            knownCards.put(type, new HashSet<>());
+        }
+        for (Card card : cards) {
+            knownCards.get(card.getType()).add(card);
+        }
 
 
-  /* Code from template association_GetOne */
-  public HashSet<Card> getCard()
-  {
-    return cards;
-  }
-
-  // line 14 "model.ump"
-   public Card suggest(CardChar character , CardRoom room , CardWeapon weapon,Player other){
-      return other.refute(character,room,weapon);
-  }
-
-  // line 17 "model.ump"
-   public Card refute(CardChar character , CardRoom room , CardWeapon weapon){
-    List<Card> options = new ArrayList<>();
-    if(cards.contains(character)){
-      options.add(character);
+        //@todo link this player obj back to card
+//        tokenChar = new TokenChar(name,0,0); //number of player
+        //@todo need to know where the player is going to start might need to add (x,y) in constructor
+        //@todo add Game object
     }
-     if(cards.contains(room)){
-       options.add(room);
-     }
-     if(cards.contains(weapon)){
-       options.add(weapon);
-     }
-     int size = options.size();
-     if(size == 1){
-       return options.get(0);
-     } else if(size == 0){ 
-       return null;
-     } else {
-       Scanner scan = new Scanner(System.in);
-       System.out.println("These are your options: " + options.toString() + "\n what would you like to refute ? Please select an index [ 1 , 2 , 3] : ");
-       
-       //keep asking the user until there's a valid index
-       while(true) {
-         try {
-           Card card = options.get(scan.nextInt()-1);
-           scan.close();
-           return card;
-         } catch (Exception e) {
-           System.out.println("Invalid input please enter a valid index\n");
-         }
-       }
-     }
-    
-  }
 
-  // line 20 "model.ump"
-   public boolean accuse(CardChar character , CardRoom room , CardWeapon weapon){
-    return false;
-    
-  }
+    //------------------------
+    // INTERFACE
+    //------------------------
 
-  // line 23 "model.ump"
-   public void move(){
-    //will this just be changing rooms?
-    
-  }
+    public boolean setGameOver(boolean aGameOver) {
+        boolean wasSet = false;
+        gameOver = aGameOver;
+        wasSet = true;
+        return wasSet;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public boolean getGameOver() {
+        return gameOver;
+    }
+
+    /* Code from template association_GetOne */
+//    public TokenChar getTokenChar()
+//    {
+//        return tokenChar;
+//    }
+    /* Code from template association_GetMany */
+    public Game getGame() {
+        return game;
+    }
 
 
-  public String toString()
-  {
-    return super.toString() + "["+
-            "name" + ":" + getName()+ "," +
-            "gameOver" + ":" + getGameOver()+ "]" + System.getProperties().getProperty("line.separator") +
-            "  " + "tokenChar = "+(getTokenChar()!=null?Integer.toHexString(System.identityHashCode(getTokenChar())):"null") + System.getProperties().getProperty("line.separator") +
-            "  " + "card = "+(getCard()!=null?Integer.toHexString(System.identityHashCode(getCard())):"null");
-  }
+    /* Code from template association_GetOne */
+    public HashSet<Card> getHand() {
+        return cards;
+    }
+
+    /**
+     * Checks if this player's hand contains any of the passed in cards.
+     */
+    public boolean checkHand(Card character, Card room, Card weapon) {
+        for (Card c : cards) {
+            if (c.getNameOfCard().toLowerCase().equals(character.getNameOfCard().toLowerCase())
+                    || c.getNameOfCard().toLowerCase().equals(room.getNameOfCard().toLowerCase())
+                    || c.getNameOfCard().toLowerCase().equals(weapon.getNameOfCard().toLowerCase()))
+                return true;
+
+        }
+
+        // look through map
+
+        return false;
+    }
+
+    // line 14 "model.ump"
+    public boolean suggest(CardChar character, CardRoom room, CardWeapon weapon, Player other) {
+        Card card = other.refute(character, room, weapon, other);
+        if (card != null) {
+            knownCards.get(card.getType()).add(card);
+            System.out.println(other.getName() + " has refuted: " + card.getNameOfCard());
+            return true;
+        }
+        return false;
+    }
+
+    public void displayCards() {
+        HashMap<String, Card> charCards = new HashMap<>(game.charCards);              // TODO: can rename to simply characters, weapons, rooms ?
+        HashMap<String, Card> weaponCards = new HashMap<>(game.weaponCards);
+        HashMap<String, Card> roomCards = new HashMap<>(game.roomCards);
+        for (Card card : game.winningDeck) {
+            if (card instanceof CardChar) {
+                charCards.put(card.getNameOfCard(), (CardChar) card);
+            } else if (card instanceof CardWeapon) {
+                weaponCards.put(card.getNameOfCard(), (CardWeapon) card);
+            } else if (card instanceof CardRoom) {
+                roomCards.put(card.getNameOfCard(), (CardRoom) card);
+            }
+        }
+        printCards("CHARACTER CARDS: ", "character", charCards);
+        printCards("WEAPON CARDS: ", "weapon", weaponCards);
+        printCards("ROOM CARDS: ", "room", roomCards);
+
+    }
+
+    public void printCards(String intro, String typeCard, HashMap<String, Card> map) {
+        System.out.println();
+        System.out.println(intro);
+        System.out.println(String.format("%-20s%-7s", "NAME", "FOUND"));
+
+        for (String key : map.keySet()) {
+            String found = "";
+            if (knownCards.get(typeCard).contains(map.get(key))) {
+                found = "  X";
+            }
+            System.out.println(String.format("%-20s%-7s", key, found));
+        }
+
+    }
+
+    // line 17 "model.ump"
+    public Card refute(CardChar character, CardRoom room, CardWeapon weapon, Player other) {
+        List<Card> options = new ArrayList<>();
+        if (other.cards.contains(character)) {
+            options.add(character);
+        }
+        if (other.cards.contains(room)) {
+            options.add(room);
+        }
+        if (other.cards.contains(weapon)) {
+            options.add(weapon);
+        }
+        int size = options.size();
+        if (size == 1) {            // other player has exactly one match
+            System.out.println(other.getName() + " has refuted " + options.get(0).getNameOfCard() + ".");
+            return options.get(0);
+        } else if (size == 0) {     // other players has no matches
+            System.out.println(other.getName() + " does not have any matching cards.");
+            return null;
+        } else {                    // other player has multiple matches and must choose one to refute
+
+            //keep asking the user until there's a valid index
+            while (true) {
+                try {
+                    Scanner scan = new Scanner(System.in);
+                    System.out.println(other.getName() + " these are your options: " + options.toString() + "\nWhat would you like to refute ? Please select an index [ 1 , 2 , 3 ] : ");
+                    Card card = options.get(scan.nextInt() - 1);
+//                    scan.close();
+                    return card;
+                } catch (Exception e) {
+                    System.out.println("Invalid input please enter a valid index.\n");
+                }
+            }
+        }
+
+    }
+
+    // line 20 "model.ump"
+    public boolean accuse(CardChar character, CardRoom room, CardWeapon weapon) {
+        return false;
+
+    }
+
+    // line 23 "model.ump"
+    public void move() {
+        //will this just be changing rooms?
+
+    }
+
+
+    public String toString() {
+        return super.toString() + "[" +
+                "name" + ":" + getName() + "," +
+                "gameOver" + ":" + getGameOver() + "]" + System.getProperties().getProperty("line.separator") +
+//                "  " + "tokenChar = "+(getTokenChar()!=null?Integer.toHexString(System.identityHashCode(getTokenChar())):"null") + System.getProperties().getProperty("line.separator") +
+                "  " + "card = " + (getHand() != null ? Integer.toHexString(System.identityHashCode(getHand())) : "null");
+    }
+
 }

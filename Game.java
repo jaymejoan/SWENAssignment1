@@ -1,4 +1,3 @@
-import java.io.InputStream;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -11,16 +10,8 @@ public class Game {
             "Candlestick", "Dagger", "Lead Pipe", "Revolver", "Rope", "Wrench",
             "Kitchen", "Ballroom", "Conservatory", "Dining Room", "Billiard Room", "Library", "Lounge", "Hall", "Study"};
 
+
     private final String[] playerNames = new String[]{"Player1", "Player2", "Player3", "Player4", "Player5", "Player6"};
-
-
-    ;
-
-    //    ArrayList<Card> cards = new ArrayList<>();
-
-//    ArrayList<CardChar> charCards = new ArrayList<>();
-//    ArrayList<CardWeapon> weaponCards = new ArrayList<>();
-//    ArrayList<CardRoom> roomCards = new ArrayList<>();
 
     HashMap<String, CardChar> charCards = new HashMap<>();              // TODO: can rename to simply characters, weapons, rooms ?
     HashMap<String, CardWeapon> weaponCards = new HashMap<>();
@@ -85,17 +76,16 @@ public class Game {
         createTiles();
 
         // initialise Character cards
-        for (int i = 0; i <= 5; i++) {
-            charCards.put(cardNames[i], new CardChar(cardNames[i]));
-        }
+        for (int i = 0; i <= 5; i++)
+            charCards.put(cardNames[i].toLowerCase(), new CardChar(cardNames[i]));
 
         // initialise Weapon cards
         for (int i = 6; i <= 11; i++)
-            weaponCards.put(cardNames[i], new CardWeapon(cardNames[i]));
+            weaponCards.put(cardNames[i].toLowerCase(), new CardWeapon(cardNames[i]));
 
         // initialise Room cards
         for (int i = 12; i < cardNames.length; i++)
-            roomCards.put(cardNames[i], new CardRoom(cardNames[i]));
+            roomCards.put(cardNames[i].toLowerCase(), new CardRoom(cardNames[i]));
 
 
 //        for (int i = 0; i < cards.size(); i++)
@@ -103,17 +93,33 @@ public class Game {
 
         createWinningDeck();
 
-        // add remaining cards to deck
+        // add remaining cards (ie. not winning cards) to deck
         fullDeck.addAll(charCards.values());
         fullDeck.addAll(weaponCards.values());
         fullDeck.addAll(roomCards.values());
 
-        ArrayList<HashSet<Card>> deck = dealCards(numOfPlayers);
+        ArrayList<HashSet<Card>> hand = dealCards(numOfPlayers);        // List of each player's hand of cards
 
         // initialise players
         for (int i = 0; i < numOfPlayers; i++) {
-            players.add(new Player(playerNames[i], 0, 0, deck.get(i), this));
-            System.out.println("player: " + i + " deck: " + deck.get(i).toString());
+            players.add(new Player(playerNames[i], 0, 0, hand.get(i), this));
+            System.out.println("player: " + i + " deck: " + hand.get(i).toString());
+        }
+
+        // add winning cards back into original deck (needed for rest of gameplay)
+        for (Card card : winningDeck) {
+            if (card instanceof CardChar)
+                charCards.put(card.getNameOfCard(), (CardChar) card);
+            else if (card instanceof CardWeapon)
+                weaponCards.put(card.getNameOfCard(), (CardWeapon) card);
+            else if (card instanceof CardRoom)
+                roomCards.put(card.getNameOfCard(), (CardRoom) card);
+        }
+
+        //TODO: make array lowercase
+        for (int i = 0; i < cardNames.length; i++) {
+            cardNames[i] = cardNames[i].toLowerCase();
+//            System.out.println(i + ": " + cardNames[i]);
         }
 
 
@@ -244,9 +250,9 @@ public class Game {
         int randomRoom = ThreadLocalRandom.current().nextInt(11, 21);
 
         // add cards to winning deck
-        winningDeck.add(charCards.get(cardNames[randomChar]));
-        winningDeck.add(weaponCards.get(cardNames[randomWeapon]));
-        winningDeck.add(roomCards.get(cardNames[randomRoom]));
+        winningDeck.add(charCards.get(cardNames[randomChar].toLowerCase()));
+        winningDeck.add(weaponCards.get(cardNames[randomWeapon].toLowerCase()));
+        winningDeck.add(roomCards.get(cardNames[randomRoom].toLowerCase()));
 
         // remove winning cards from pack
         charCards.remove(cardNames[randomChar]);
@@ -255,8 +261,8 @@ public class Game {
 
         // testing
 
-//        for (Card card : winningDeck)
-//            System.out.println("type: " + card.toString() + " name: " + card.getNameOfCard());
+        for (Card card : winningDeck)
+            System.out.println("type: " + card.toString() + " name: " + card.getNameOfCard());
 
 //        for (Map.Entry<String, CardChar> c : charCards.entrySet()
 //          System.out.println("name: " + c.getKey());
@@ -273,19 +279,18 @@ public class Game {
     /**
      * Evenly deals the remaining cards among the players.
      *
-     * @return
+     * @param numOfPlayers -- the total number of players in the game.
+     * @return ArrayList<HashSet < Card>> -- a List containing the deck of cards in each Player's hand.
      */
     public ArrayList<HashSet<Card>> dealCards(int numOfPlayers) {
 
         Collections.shuffle(fullDeck);
-
         ArrayList<HashSet<Card>> decks = new ArrayList<>();
         int count = 0;
 
-        // create HashSet for each Player
+        // initialize a deck of cards for each Player
         for (int i = 0; i < numOfPlayers; i++)
             decks.add(new HashSet<>());
-
 
         // distribute cards
         for (Card card : fullDeck) {
@@ -297,7 +302,6 @@ public class Game {
         System.out.println("Cards have been handed out.");
 
         return decks;
-
     }
 
     /**
@@ -314,7 +318,7 @@ public class Game {
     /**
      * Returns true if a Player has won the game.
      *
-     * @return
+     * @return boolean -- true if Player has won game. Otherwise, false.
      */
     public boolean gameWon() {
 
@@ -331,33 +335,63 @@ public class Game {
      */
     public void runGame() {
         int currentPlayer = 0;
+        int nextPlayer;         // the player currentPlayer is suggesting to
 
-        // get user input for suggest
+
         while (true) {
             Scanner scan = new Scanner(System.in);
 
+            currentPlayer = currentPlayer >= players.size() ? 0 : currentPlayer;
+            nextPlayer = currentPlayer;
 
+            Player p1 = players.get(currentPlayer);
+            System.out.println("\nIt's " + p1.getName() + "'s turn.");
+
+            // TODO: add move tokens FIRST before suggestion
+
+            // get user input for suggestion
+            //TODO: handle equalsIgnoreCase
+            CardChar character = charCards.get(getInput("Suggest a Character : ", scan, "char"));
+            CardRoom room = roomCards.get(getInput("Suggest a Room : ", scan, "room"));                 // TODO: remove this later. Room should be same room as the player (user does not choose)
+            CardWeapon weapon = weaponCards.get(getInput("Suggest a Weapon : ", scan, "weapon"));
+
+            int cardNotFound = 0;
+
+            // ask other players until a card is successfully refuted
             for (int i = 0; i <= players.size() - 1; i++) {
 
-                // first move tokens
+                // cases when no matching cards are found
+//                if (cardNotFound == players.size() - 1 && (p1.getHand().contains(character) || p1.getHand().contains(room) || p1.getHand().contains(weapon))) {
+                if (cardNotFound == players.size() - 1 &&
+                        (p1.checkHand(character, room, weapon))) {
+                    System.out.println("You have one (or more) of these cards!");     // TODO: should we allow the user to ask a card from their own hand ?
+                    currentPlayer++;
+                    // TODO: check if user wants to accuse
+                    break;
+                } else if (cardNotFound == players.size() - 1) {                          // cards are in winning deck (case: user suggests NOT accuses all three winning cards)
+                    System.out.println("Interesting... No other players have these cards...");
+                    currentPlayer++;
 
-                // then make suggestion
+                    //TODO: check if user wants to accuse
+                    break;
+                }
 
-                Player p1 = players.get(currentPlayer);
-                System.out.println("It's " + p1.getName() + "'s turn");
 
-                currentPlayer = currentPlayer + 1 >= players.size() ? 0 : currentPlayer + 1;
-                Player p2 = players.get(currentPlayer);
+                nextPlayer = nextPlayer + 1 >= players.size() ? 0 : nextPlayer + 1;    // sets next player
+                Player p2 = players.get(nextPlayer);
 
-                // player can ONLY suggest if in a Room !
+                System.out.println(p1.getName() + " suggests to " + p2.getName() + ": '" + character.toString() + "' inside the '" + room.toString() + "' using a '" + weapon.toString() + "' as a weapon.");
 
-                CardChar character = charCards.get(getInput("Suggest a Character : ", scan));
-                CardRoom room = roomCards.get(getInput("Suggest a Room : ", scan));                 // TODO: this should be same room as the player (user does not choose)
-                CardWeapon weapon = weaponCards.get(getInput("Suggest a Weapon : ", scan));
+                // if matching card is found, move to next player
+                if (p1.suggest(character, room, weapon, p2)) {
+                    System.out.println("breaking out of loop.");
+                    currentPlayer++;
 
-                System.out.println(p1.getName() + " suggests: " + character + " inside the " + room + " using a " + weapon + " as a weapon");
+                    //TODO: check if user wants to accuse
+                    break;
+                }
 
-                if (p1.suggest(character, room, weapon, p2)) break;
+                cardNotFound++;
 
 
 //                System.out.println(character.getNameOfCard());
@@ -396,34 +430,39 @@ public class Game {
     /**
      * A helper method which returns the user's input.
      *
-     * @return
+     * @return String -- the user input.
      */
-    private String getInput(String question, Scanner s) {
+    private String getInput(String question, Scanner scan, String cardType) {
 
         while (true) {
             try {
-                Scanner scan = s;
                 scan.useDelimiter("\n");
                 System.out.println(question);
-//                String input = scan.nextLine();
-                String input = scan.next();
-                System.out.println("'" + input + "'");
+//                String input = scan.next();
+                String input = scan.next().toLowerCase();
+                System.out.println(input);
+
                 if (!(Arrays.asList(cardNames).contains(input)))
-                    throw new Exception();
+                    throw new Exception("Invalid input. Please enter a valid suggestion (make sure spelling is correct).");
+                else if (cardType.equals("char") && !charCards.containsKey(input))
+                    throw new Exception("Invalid Character card. Please enter a valid suggestion.");
+                else if (cardType.equals("room") && !roomCards.containsKey(input))
+                    throw new Exception("Invalid Room card. Please enter a valid suggestion.");
+                else if (cardType.equals("weapon") && !weaponCards.containsKey(input))
+                    throw new Exception("Invalid Weapon card. Please enter a valid suggestion.");
 
 
+                System.out.println("input: " + input);
 //                scan.close();
                 return input;
             } catch (Exception e) {
-                System.out.println("Invalid input. Please enter a valid suggestion (make sure spelling is correct).\n");
+                System.out.println(e.getMessage());
             }
         }
     }
 
 
     public static void main(String... args) {
-
-
         int num;
 
         // get valid number of players
