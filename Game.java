@@ -11,7 +11,7 @@ public class Game {
             "Kitchen", "Ballroom", "Conservatory", "Dining Room", "Billiard Room", "Library", "Lounge", "Hall", "Study"};
 
 
-    private final String[] playerNames = new String[]{"(P1) Miss Scarlet", "(P2) Rev Green", "(P3) Colonel Mustard", "(P44) Professor Plum", "(P5) Mrs Peacock", "(P6) Mrs White"};
+    private final String[] playerNames = new String[]{"Player1", "Player2", "Player3", "Player4", "Player5", "Player6"};
     private final ArrayList<Card> winningDeck = new ArrayList<>();                    // deck containing the three winning cards
     private boolean gameWon = false;
 
@@ -73,8 +73,6 @@ public class Game {
      * @param numOfPlayers -- number of players in this game.
      */
     public Game(int numOfPlayers) {
-        ArrayList<HashSet<Card>> hand = dealCards(numOfPlayers);        // List of each player's hand of cards
-
         createTiles();
 
         // initialise Character cards
@@ -95,6 +93,8 @@ public class Game {
         fullDeck.addAll(charCards.values());
         fullDeck.addAll(weaponCards.values());
         fullDeck.addAll(roomCards.values());
+
+        ArrayList<HashSet<Card>> hand = dealCards(numOfPlayers);        // List of each player's hand of cards
 
         // initialise players
         for (int i = 0; i < numOfPlayers; i++) {
@@ -378,7 +378,7 @@ public class Game {
         }
 
 
-        checkNewGame(scan);
+//        checkNewGame(scan);
 
 
     }
