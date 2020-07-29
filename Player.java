@@ -28,6 +28,8 @@ public class Player {
         game = GAME;
         cards = playerCards;
         String[] cardsType = {"character", "room", "weapon"};
+
+
         for (String type : cardsType) {
             knownCards.put(type, new HashSet<>());
         }
@@ -89,8 +91,6 @@ public class Player {
 
         }
 
-        // look through map
-
         return false;
     }
 
@@ -99,25 +99,27 @@ public class Player {
         Card card = other.refute(character, room, weapon, other);
         if (card != null) {
             knownCards.get(card.getType()).add(card);
-            System.out.println(other.getName() + " has refuted: " + card.getNameOfCard());
+//            System.out.println(other.getName() + " has refuted: " + card.getNameOfCard());
             return true;
         }
         return false;
     }
 
     public void displayCards() {
-        HashMap<String, Card> charCards = new HashMap<>(game.charCards);              // TODO: can rename to simply characters, weapons, rooms ?
+        HashMap<String, Card> charCards = new HashMap<>(game.charCards);
         HashMap<String, Card> weaponCards = new HashMap<>(game.weaponCards);
         HashMap<String, Card> roomCards = new HashMap<>(game.roomCards);
-        for (Card card : game.winningDeck) {
-            if (card instanceof CardChar) {
-                charCards.put(card.getNameOfCard(), (CardChar) card);
-            } else if (card instanceof CardWeapon) {
-                weaponCards.put(card.getNameOfCard(), (CardWeapon) card);
-            } else if (card instanceof CardRoom) {
-                roomCards.put(card.getNameOfCard(), (CardRoom) card);
-            }
-        }
+
+//        for (Card card : game.getWinningDeck()) {
+//            if (card instanceof CardChar) {
+//                charCards.put(card.getNameOfCard(), (CardChar) card);
+//            } else if (card instanceof CardWeapon) {
+//                weaponCards.put(card.getNameOfCard(), (CardWeapon) card);
+//            } else if (card instanceof CardRoom) {
+//                roomCards.put(card.getNameOfCard(), (CardRoom) card);
+//            }
+//        }
+
         printCards("CHARACTER CARDS: ", "character", charCards);
         printCards("WEAPON CARDS: ", "weapon", weaponCards);
         printCards("ROOM CARDS: ", "room", roomCards);
@@ -134,7 +136,7 @@ public class Player {
             if (knownCards.get(typeCard).contains(map.get(key))) {
                 found = "  X";
             }
-            System.out.println(String.format("%-20s%-7s", key, found));
+            System.out.println(String.format("%-20s%-7s", map.get(key), found));
         }
 
     }
@@ -151,6 +153,7 @@ public class Player {
         if (other.cards.contains(weapon)) {
             options.add(weapon);
         }
+
         int size = options.size();
         if (size == 1) {            // other player has exactly one match
             System.out.println(other.getName() + " has refuted " + options.get(0).getNameOfCard() + ".");
@@ -178,14 +181,17 @@ public class Player {
 
     // line 20 "model.ump"
     public boolean accuse(CardChar character, CardRoom room, CardWeapon weapon) {
-        return false;
-
+        return game.getWinningDeck().contains(character) && game.getWinningDeck().contains(room) && game.getWinningDeck().contains(weapon);
     }
 
     // line 23 "model.ump"
     public void move() {
         //will this just be changing rooms?
 
+    }
+
+    public void setGameOver() {
+        gameOver = true;
     }
 
 
