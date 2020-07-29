@@ -13,7 +13,7 @@ public class Player {
     private boolean gameOver;
 
     //Player Associations
-//    private TokenChar tokenChar;
+    private TokenChar tokenChar;
     private Game game;
     private HashSet<Card> cards = new HashSet<>();
     Map<String, HashSet<Card>> knownCards = new HashMap<>();
@@ -22,7 +22,8 @@ public class Player {
     // CONSTRUCTOR
     //------------------------
 
-    public Player(String playerName, int x, int y, HashSet<Card> playerCards, Game GAME) {
+    public Player(String playerName, int x, int y, HashSet<Card> playerCards, Game GAME, TokenChar token) {
+        tokenChar = token;
         name = playerName;
         gameOver = false;
         game = GAME;
@@ -61,6 +62,10 @@ public class Player {
 
     public boolean getGameOver() {
         return gameOver;
+    }
+
+    public TokenChar getToken(){
+        return tokenChar;
     }
 
     /* Code from template association_GetOne */
@@ -196,11 +201,7 @@ public class Player {
 
 
     public String toString() {
-        return super.toString() + "[" +
-                "name" + ":" + getName() + "," +
-                "gameOver" + ":" + getGameOver() + "]" + System.getProperties().getProperty("line.separator") +
-//                "  " + "tokenChar = "+(getTokenChar()!=null?Integer.toHexString(System.identityHashCode(getTokenChar())):"null") + System.getProperties().getProperty("line.separator") +
-                "  " + "card = " + (getHand() != null ? Integer.toHexString(System.identityHashCode(getHand())) : "null");
+        return "P";
     }
 
 }

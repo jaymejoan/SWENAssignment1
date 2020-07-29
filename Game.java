@@ -4,16 +4,22 @@ import java.util.concurrent.ThreadLocalRandom;
 /**
  * The Game Class initialises and runs the game sequence.
  */
+
+//define board
+    //add player constractor
+    //call the token method
 public class Game {
 
-    private String[] cardNames = new String[]{"Miss Scarlett", "Mr. Green", "Colonel Mustard", "Professor Plum", "Mrs. Peacock", "Mrs. White",
-            "Candlestick", "Dagger", "Lead Pipe", "Revolver", "Rope", "Spanner",
+    private String[] cardNames = new String[]{"Miss Scarlet", "Rev Green", "Colonel Mustard", "Professor Plum", "Mrs Peacock", "Dr Orchid",
+            "Candlestick", "Dagger", "Lead Pipe", "Revolver", "Rope", "Wrench",
             "Kitchen", "Ballroom", "Conservatory", "Dining Room", "Billiard Room", "Library", "Lounge", "Hall", "Study"};
 
 
-    private final String[] playerNames = new String[]{"Miss Scarlett (P1)", "Mr. Green (P2)", "Colonel Mustard (P3)", "Professor Plum (P4)", "Mrs. Peacock (P5)", "Mrs. White (P6)"};
+    private final String[] playerNames = new String[]{"Player1", "Player2", "Player3", "Player4", "Player5", "Player6"};
     private final ArrayList<Card> winningDeck = new ArrayList<>();                    // deck containing the three winning cards
     private boolean gameWon = false;
+    private Board board;
+    private ArrayList<Integer> boardSetUp;
 
     HashMap<String, CardChar> charCards = new HashMap<>();
     HashMap<String, CardWeapon> weaponCards = new HashMap<>();
@@ -21,6 +27,7 @@ public class Game {
 
     ArrayList<Card> fullDeck = new ArrayList<>();                       // deck containing the remaining 18 cards
     ArrayList<Player> players = new ArrayList<>();
+
 
 
     //--- NEW FIELDS
@@ -33,46 +40,50 @@ public class Game {
     // 3 = Room
     // 4 = Door
     // boardSetUp
-    private static ArrayList<Integer> boardSetUp = new ArrayList<Integer>(
-            Arrays.asList(1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-                    3, 3, 3, 3, 3, 3, 1, 2, 2, 2, 3, 3, 3, 3, 2, 2, 2, 1, 3, 3, 3, 3, 3, 3,
-                    3, 3, 3, 3, 3, 3, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 2, 2, 3, 3, 3, 3, 3, 3,
-                    3, 3, 3, 3, 3, 3, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 2, 2, 3, 3, 3, 3, 3, 3,
-                    3, 3, 3, 3, 3, 3, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 2, 2, 3, 3, 3, 3, 3, 3,
-                    3, 3, 3, 3, 3, 3, 2, 4, 3, 3, 3, 3, 3, 3, 3, 3, 4, 2, 4, 3, 3, 3, 3, 1,
-                    1, 3, 3, 3, 3, 3, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 2, 2, 2, 2, 2, 2, 2, 2,
-                    2, 2, 2, 2, 4, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 2, 2, 2, 2, 2, 2, 2, 1,
-                    1, 2, 2, 2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 4, 2, 2, 2, 3, 3, 3, 3, 3, 3,
-                    3, 3, 3, 3, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 3, 3, 3, 3, 3, 3,
-                    3, 3, 3, 3, 3, 3, 3, 3, 2, 2, 1, 1, 1, 1, 1, 2, 2, 2, 3, 3, 3, 3, 3, 3,
-                    3, 3, 3, 3, 3, 3, 3, 3, 2, 2, 1, 1, 1, 1, 1, 2, 2, 2, 3, 3, 3, 3, 3, 3,
-                    3, 3, 3, 3, 3, 3, 3, 3, 4, 2, 1, 1, 1, 1, 1, 2, 2, 2, 3, 3, 3, 3, 3, 3,
-                    3, 3, 3, 3, 3, 3, 3, 3, 2, 2, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 4, 2, 4, 1,
-                    3, 3, 3, 3, 3, 3, 3, 3, 2, 2, 1, 1, 1, 1, 1, 2, 2, 2, 3, 3, 3, 3, 3, 1,
-                    3, 3, 3, 3, 3, 3, 3, 3, 2, 2, 1, 1, 1, 1, 1, 2, 2, 3, 3, 3, 3, 3, 3, 3,
-                    1, 2, 2, 2, 2, 2, 4, 2, 2, 2, 1, 1, 1, 1, 1, 2, 4, 3, 3, 3, 3, 3, 3, 3,
-                    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 4, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3,
-                    1, 2, 2, 2, 2, 2, 4, 2, 2, 3, 3, 3, 3, 3, 3, 2, 2, 2, 3, 3, 3, 3, 3, 1,
-                    3, 3, 3, 3, 3, 3, 3, 2, 2, 3, 3, 3, 3, 3, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-                    3, 3, 3, 3, 3, 3, 3, 2, 2, 3, 3, 3, 3, 3, 3, 4, 2, 4, 2, 2, 2, 2, 2, 1,
-                    3, 3, 3, 3, 3, 3, 3, 2, 2, 3, 3, 3, 3, 3, 3, 2, 2, 3, 3, 3, 3, 3, 3, 3,
-                    3, 3, 3, 3, 3, 3, 3, 2, 2, 3, 3, 3, 3, 3, 3, 2, 2, 3, 3, 3, 3, 3, 3, 3,
-                    3, 3, 3, 3, 3, 3, 3, 2, 2, 3, 3, 3, 3, 3, 3, 2, 2, 3, 3, 3, 3, 3, 3, 3,
-                    3, 3, 3, 3, 3, 3, 1, 2, 1, 3, 3, 3, 3, 3, 3, 1, 2, 1, 3, 3, 3, 3, 3, 3)
-    );
+//    private static ArrayList<Integer> boardSetUp = new ArrayList<Integer>(
+//            Arrays.asList(1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+//                    3, 3, 3, 3, 3, 3, 1, 2, 2, 2, 3, 3, 3, 3, 2, 2, 2, 1, 3, 3, 3, 3, 3, 3,
+//                    3, 3, 3, 3, 3, 3, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 2, 2, 3, 3, 3, 3, 3, 3,
+//                    3, 3, 3, 3, 3, 3, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 2, 2, 3, 3, 3, 3, 3, 3,
+//                    3, 3, 3, 3, 3, 3, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 2, 2, 3, 3, 3, 3, 3, 3,
+//                    3, 3, 3, 3, 3, 3, 2, 4, 3, 3, 3, 3, 3, 3, 3, 3, 4, 2, 4, 3, 3, 3, 3, 1,
+//                    1, 3, 3, 3, 3, 3, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 2, 2, 2, 2, 2, 2, 2, 2,
+//                    2, 2, 2, 2, 4, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 2, 2, 2, 2, 2, 2, 2, 1,
+//                    1, 2, 2, 2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 4, 2, 2, 2, 3, 3, 3, 3, 3, 3,
+//                    3, 3, 3, 3, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 3, 3, 3, 3, 3, 3,
+//                    3, 3, 3, 3, 3, 3, 3, 3, 2, 2, 1, 1, 1, 1, 1, 2, 2, 2, 3, 3, 3, 3, 3, 3,
+//                    3, 3, 3, 3, 3, 3, 3, 3, 2, 2, 1, 1, 1, 1, 1, 2, 2, 2, 3, 3, 3, 3, 3, 3,
+//                    3, 3, 3, 3, 3, 3, 3, 3, 4, 2, 1, 1, 1, 1, 1, 2, 2, 2, 3, 3, 3, 3, 3, 3,
+//                    3, 3, 3, 3, 3, 3, 3, 3, 2, 2, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 4, 2, 4, 1,
+//                    3, 3, 3, 3, 3, 3, 3, 3, 2, 2, 1, 1, 1, 1, 1, 2, 2, 2, 3, 3, 3, 3, 3, 1,
+//                    3, 3, 3, 3, 3, 3, 3, 3, 2, 2, 1, 1, 1, 1, 1, 2, 2, 3, 3, 3, 3, 3, 3, 3,
+//                    1, 2, 2, 2, 2, 2, 4, 2, 2, 2, 1, 1, 1, 1, 1, 2, 4, 3, 3, 3, 3, 3, 3, 3,
+//                    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 4, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3,
+//                    1, 2, 2, 2, 2, 2, 4, 2, 2, 3, 3, 3, 3, 3, 3, 2, 2, 2, 3, 3, 3, 3, 3, 1,
+//                    3, 3, 3, 3, 3, 3, 3, 2, 2, 3, 3, 3, 3, 3, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+//                    3, 3, 3, 3, 3, 3, 3, 2, 2, 3, 3, 3, 3, 3, 3, 4, 2, 4, 2, 2, 2, 2, 2, 1,
+//                    3, 3, 3, 3, 3, 3, 3, 2, 2, 3, 3, 3, 3, 3, 3, 2, 2, 3, 3, 3, 3, 3, 3, 3,
+//                    3, 3, 3, 3, 3, 3, 3, 2, 2, 3, 3, 3, 3, 3, 3, 2, 2, 3, 3, 3, 3, 3, 3, 3,
+//                    3, 3, 3, 3, 3, 3, 3, 2, 2, 3, 3, 3, 3, 3, 3, 2, 2, 3, 3, 3, 3, 3, 3, 3,
+//                    3, 3, 3, 3, 3, 3, 1, 2, 1, 3, 3, 3, 3, 3, 3, 1, 2, 1, 3, 3, 3, 3, 3, 3)
+//    );
 
     HashSet<Room> rooms = new HashSet<>();
-    Tile[][] board = new Tile[25][24]; //0-24[25] by 0-23[24]
+    Tile[][] tiles = new Tile[25][24]; //0-24[25] by 0-23[24]
     //--- NEW FIELDS END
 
 
     /**
-     * Players, Cards and Tiles are constructed here
+     * Players, Cards and the Tiles should be constructed here
      * (as they only need to be initialised once).
      *
      * @param numOfPlayers -- number of players in this game.
      */
     public Game(int numOfPlayers) {
+        board = new Board();
+        tiles = board.getTiles();
+        boardSetUp = board.boardSetUp;
+
         createTiles();
 
         // initialise Character cards
@@ -87,6 +98,10 @@ public class Game {
         for (int i = 12; i < cardNames.length; i++)
             roomCards.put(cardNames[i].toLowerCase(), new CardRoom(cardNames[i]));
 
+
+//        for (int i = 0; i < cards.size(); i++)
+//            System.out.println(i + " name: " + cards.get(i).getNameOfCard() + " type: " + cards.get(i).toString());
+
         createWinningDeck();
 
         // add non-winning cards to deck
@@ -98,7 +113,8 @@ public class Game {
 
         // initialise players
         for (int i = 0; i < numOfPlayers; i++) {
-            players.add(new Player(playerNames[i], 0, 0, hand.get(i), this));
+            players.add(new Player(playerNames[i], 0, 0, hand.get(i), this,new TokenChar(playerNames[i],7, 1,board)));
+
             System.out.println("player" + i + " deck: " + hand.get(i).toString());
         }
 
@@ -145,7 +161,7 @@ public class Game {
                     break;
             }
 
-            board[y][x] = newTile;
+            tiles[y][x] = newTile;
 
             if (x == 23) {
                 x = 0;
@@ -159,73 +175,73 @@ public class Game {
 
         // Kitchen [4][2]
         // Door 1: [7][4]
-        board[4][2].setName("Kitchen");
-        board[4][2].addDoor(1, (Door) board[7][4]);
+        tiles[4][2].setName("Kitchen");
+        tiles[4][2].addDoor(1, (Door) tiles[7][4]);
 
         // Ballroom [5][11]
         // Door 1: [5][7]
         // Door 2: [8][9]
         // Door 3: [8][14]
         // Door 4: [5][16]
-        board[5][11].setName("Ballroom");
-        board[5][11].addDoor(1, (Door) board[5][7]);
-        board[5][11].addDoor(2, (Door) board[8][9]);
-        board[5][11].addDoor(3, (Door) board[8][14]);
-        board[5][11].addDoor(4, (Door) board[5][16]);
-        rooms.add((Room) board[5][11]);
+        tiles[5][11].setName("Ballroom");
+        tiles[5][11].addDoor(1, (Door) tiles[5][7]);
+        tiles[5][11].addDoor(2, (Door) tiles[8][9]);
+        tiles[5][11].addDoor(3, (Door) tiles[8][14]);
+        tiles[5][11].addDoor(4, (Door) tiles[5][16]);
+        rooms.add((Room) tiles[5][11]);
 
         // Conservatory [3][20]
         // Door 1: [5][18]
-        board[3][20].setName("Conservatory");
-        board[3][20].addDoor(1, (Door) board[5][18]);
-        rooms.add((Room) board[3][20]);
+        tiles[3][20].setName("Conservatory");
+        tiles[3][20].addDoor(1, (Door) tiles[5][18]);
+        rooms.add((Room) tiles[3][20]);
 
         // Dining Room [12][3]
         // Door 1: [12][8]
         // Door 2: [16][6]
-        board[12][3].setName("Dining Room");
-        board[12][3].addDoor(1, (Door) board[12][8]);
-        board[12][3].addDoor(2, (Door) board[16][6]);
-        rooms.add((Room) board[12][3]);
+        tiles[12][3].setName("Dining Room");
+        tiles[12][3].addDoor(1, (Door) tiles[12][8]);
+        tiles[12][3].addDoor(2, (Door) tiles[16][6]);
+        rooms.add((Room) tiles[12][3]);
 
         // Billiard Room [10][20]
         // Door 1: [9][17]
         // Door 2: [13][22]
-        board[10][20].setName("Billiard Room");
-        board[10][20].addDoor(1, (Door) board[9][17]);
-        board[10][20].addDoor(2, (Door) board[12][8]);
-        rooms.add((Room) board[10][20]);
+        tiles[10][20].setName("Billiard Room");
+        tiles[10][20].addDoor(1, (Door) tiles[9][17]);
+        tiles[10][20].addDoor(2, (Door) tiles[12][8]);
+        rooms.add((Room) tiles[10][20]);
 
         // Library [16][20]
         // Door 1: [13][20]
         // Door 2: [16][16]
-        board[16][20].setName("Library");
-        board[16][20].addDoor(1, (Door) board[13][20]);
-        board[16][20].addDoor(2, (Door) board[16][16]);
-        rooms.add((Room) board[16][20]);
+        tiles[16][20].setName("Library");
+        tiles[16][20].addDoor(1, (Door) tiles[13][20]);
+        tiles[16][20].addDoor(2, (Door) tiles[16][16]);
+        rooms.add((Room) tiles[16][20]);
 
         // Lounge [22][3]
         // Door 1: [18][6]
-        board[22][3].setName("Lounge");
-        board[22][3].addDoor(1, (Door) board[18][6]);
-        rooms.add((Room) board[22][3]);
+        tiles[22][3].setName("Lounge");
+        tiles[22][3].addDoor(1, (Door) tiles[18][6]);
+        rooms.add((Room) tiles[22][3]);
 
         // Hall [21][11]
         // Door 1: [17][11]
         // Door 2: [17][12]
         // Door 3: [20][15]
-        board[21][11].setName("Hall");
-        board[21][11].addDoor(1, (Door) board[13][20]);
-        board[21][11].addDoor(1, (Door) board[13][20]);
-        board[21][11].addDoor(1, (Door) board[13][20]);
-        rooms.add((Room) board[21][11]);
+        tiles[21][11].setName("Hall");
+        tiles[21][11].addDoor(1, (Door) tiles[13][20]);
+        tiles[21][11].addDoor(1, (Door) tiles[13][20]);
+        tiles[21][11].addDoor(1, (Door) tiles[13][20]);
+        rooms.add((Room) tiles[21][11]);
 
 
         // Study [23][20]
         // Door 1: [20][17]
-        board[23][20].setName("Study");
-        board[23][20].addDoor(1, (Door) board[20][17]);
-        rooms.add((Room) board[23][20]);
+        tiles[23][20].setName("Study");
+        tiles[23][20].addDoor(1, (Door) tiles[20][17]);
+        rooms.add((Room) tiles[23][20]);
         //----- NEW CONTENT END
 
     }
@@ -257,6 +273,16 @@ public class Game {
         for (Card card : winningDeck)
             System.out.println("type: " + card.getType() + " name: " + card.getNameOfCard());
 
+
+//        for (Map.Entry<String, CardChar> c : charCards.entrySet()
+//          System.out.println("name: " + c.getKey());
+//
+//        for (Map.Entry<String, CardWeapon> c : weaponCards.entrySet())
+//            System.out.println("name: " + c.getKey());
+//
+//        for (Map.Entry<String, CardRoom> c : roomCards.entrySet())
+//            System.out.println("name: " + c.getKey());
+//
     }
 
     /**
@@ -282,22 +308,24 @@ public class Game {
             count++;
         }
 
-        System.out.println("Cards have been handed out... Let's start!");
+        System.out.println("Cards have been handed out.");
 
         return decks;
     }
 
     /**
-     * Resets the game to its initial starting state.
+     * Resets the game to its starting state.
      */
-    public void resetGame() {
+    public void reset() {
         charCards.clear();
         weaponCards.clear();
         roomCards.clear();
         winningDeck.clear();
-        fullDeck.clear();
         players.clear();
-        gameWon = false;
+    }
+
+    public Integer rollDice(){
+        return (int) Math.ceil(Math.random() * 6) + (int) Math.ceil(Math.random() * 6);
     }
 
     /**
@@ -305,30 +333,65 @@ public class Game {
      *
      * @return boolean -- true if Player has won game. Otherwise, false.
      */
-    public void setGameWon() {
+    public void gameWon() {
+
         gameWon = true;
     }
 
     // should we include a gameLost in the event NO players correctly guess the winning deck ?
+    //new method
+    public Room getReachableRoom(HashSet<Tile> range, Scanner scan){
+        ArrayList<Room> reachableRooms = new ArrayList<>();
+        System.out.println("These are the rooms you can reach: ");
+        System.out.println(range.toString());
+        for(Room room : board.rooms){
+            System.out.println(room.getName());
+            if(range.contains(room)){
+                reachableRooms.add(room);
+                System.out.print(room.getName() + ",   ");
+            }
+        }
+
+        //keep asking the user until there's a valid index
+        while (true) {
+            try {
+                System.out.print("\nWhat room would you like to move to? [1 - " + reachableRooms.size() + "] : ");
+                Room room = reachableRooms.get(scan.nextInt() - 1);
+//                    scan.close();
+                return room;
+            } catch (Exception e) {
+                System.out.println("Invalid input please enter a valid index.\n");
+            }
+        }
 
 
+
+
+
+
+
+    }
     /**
      * Executes the game.
      */
     public void runGame() {
         int currentPlayer = 0;
         int nextPlayer;         // the player currentPlayer is suggesting to
+        board.displayBoard();
 
-        Scanner scan = new Scanner(System.in);
 
         while (!gameWon) {
-//            Scanner scan = new Scanner(System.in);
+            Scanner scan = new Scanner(System.in);
 
             currentPlayer = currentPlayer >= players.size() ? 0 : currentPlayer;
             nextPlayer = currentPlayer;
-            int cardNotFound = 0;
-
+            int dice = rollDice();
             Player p1 = players.get(currentPlayer);
+            TokenChar tokenChar = p1.getToken();
+            HashSet<Tile> tiles = tokenChar.getVisitableTiles(tokenChar.x,tokenChar.y,dice,new HashSet<Tile>());
+            Room choseRoom = getReachableRoom(tiles,scan);
+            System.out.println("Chose room: " + choseRoom.getName());
+
 
             // skips players not in game
             if (p1.getGameOver()) {
@@ -337,100 +400,78 @@ public class Game {
             }
 
             System.out.println("\nIt's " + p1.getName() + "'s turn.");
-            // TODO: role dice and add move tokens FIRST before suggestion
             p1.displayCards();
 
-            System.out.println("\n" + p1.getName() + " do you want to accuse ? [Y / N]: ");
-            String ans = scan.next();
-
+            // TODO: add move tokens FIRST before suggestion
 
             // gets cards user wants to suggest
             CardChar character = charCards.get(getInput("\nSuggest a Character : ", scan, "char"));
             CardRoom room = roomCards.get(getInput("Suggest a Room : ", scan, "room"));                 // TODO: remove this later. Room should be same room as the player (user does not choose)
             CardWeapon weapon = weaponCards.get(getInput("Suggest a Weapon : ", scan, "weapon"));
 
-            // suggest to current player first
-            System.out.println(p1.getName() + " suggests to " + p1.getName() + ": '" + character.toString() + "' inside the '" + room.toString() + "' using a '" + weapon.toString() + "' as a weapon.");
-            if (p1.suggest(character, room, weapon, p1)) {
-                currentPlayer++;
-            } else {
-//            Card card = p1.refute(character, room, weapon, p1);
-//                System.out.println("No other players have these cards BUT you have one (or more) of these cards!");
+            int cardNotFound = 0;
+
+            // ask other players until a card is successfully refuted
+            for (int i = 0; i <= players.size() - 1; i++) {
 
 
-                // ask other players until a card is successfully refuted
-                for (int i = 0; i <= players.size() - 1; i++) {
-                    //TODO: should we start with asking player 1 first before the other players ? simple if else solution
+                // cases when no matching cards are found
+//                if (cardNotFound == players.size() - 1 && (p1.getHand().contains(character) || p1.getHand().contains(room) || p1.getHand().contains(weapon))) {
+                if (cardNotFound == players.size() - 1 &&
+                        (p1.checkHand(character, room, weapon))) {
+                    System.out.println("You have one (or more) of these cards!");
+                    currentPlayer++;
+                    runAccuse(scan, p1);
 
-                    // cases when no matching cards are found
-//                    if (cardNotFound == players.size() - 1 && (p1.checkHand(character, room, weapon))) {    // case: only this player has these suggested cards --> still needed?
-//                        System.out.println("No other players have these cards BUT you have one (or more) of these cards!");
-//                        currentPlayer++;
-//                        runAccuse(scan, p1);
-//                        break;
-//                    } else
 
-                    // case: user suggests NOT accuses all three winning cards --> still needed ?
-                    if (cardNotFound == players.size() - 1) {
-                        System.out.println("Interesting... No other players have these cards...");
-                        currentPlayer++;
-                        runAccuse(scan, p1);
-                        break;
-                    }
+                    // TODO: check if user wants to accuse
+                    break;
+                } else if (cardNotFound == players.size() - 1) {                          // cards are in winning deck (case: user suggests NOT accuses all three winning cards)
+                    System.out.println("Interesting... No other players have these cards...");
+                    currentPlayer++;
+                    runAccuse(scan, p1);
 
-                    nextPlayer = nextPlayer + 1 >= players.size() ? 0 : nextPlayer + 1;    // sets next player
-                    Player p2 = players.get(nextPlayer);
-
-                    System.out.println(p1.getName() + " suggests to " + p2.getName() + ": '" + character.toString() + "' inside the '" + room.toString() + "' using a '" + weapon.toString() + "' as a weapon.");
-
-                    // if matching card is found, move to next player
-                    if (p1.suggest(character, room, weapon, p2)) {
-                        currentPlayer++;
-                        runAccuse(scan, p1);
-                        break;
-                    }
-                    cardNotFound++;
+                    //TODO: check if user wants to accuse
+                    break;
                 }
+
+
+                nextPlayer = nextPlayer + 1 >= players.size() ? 0 : nextPlayer + 1;    // sets next player
+                Player p2 = players.get(nextPlayer);
+
+                System.out.println(p1.getName() + " suggests to " + p2.getName() + ": '" + character.toString() + "' inside the '" + room.toString() + "' using a '" + weapon.toString() + "' as a weapon.");
+
+                // if matching card is found, move to next player
+                if (p1.suggest(character, room, weapon, p2)) {
+//                    System.out.println("breaking out of loop.");
+                    currentPlayer++;
+                    runAccuse(scan, p1);
+
+                    break;
+                }
+
+                cardNotFound++;
             }
         }
 
 
-//        checkNewGame(scan);
-
-
-    }
-
-    /**
-     * Checks if the user wants to start a new game.
-     *
-     * @param scan -- the current scanner in use.
-     */
-    public void checkNewGame(Scanner scan) {
-        System.out.println("Do you want to play again? [Y / N]: ");
-        String input = scan.next();
-
-        if (input.equalsIgnoreCase("Y")) {
-            resetGame();
-            runGame();
-        } else if (input.equalsIgnoreCase("N")) {
-        } else
-            checkNewGame(scan);
     }
 
     /**
      * A helper method which returns the user's input.
      *
      * @param question -- the question to be asked.
-     * @param scan     -- the current scanner in use.
-     * @param cardType -- the type of this card.
+     *
      * @return String -- the user input.
      */
     private String getInput(String question, Scanner scan, String cardType) {
+
         while (true) {
             try {
                 scan.useDelimiter("\n");
                 System.out.println(question);
                 String input = scan.next().toLowerCase();
+//                System.out.println(input);
 
                 if (!(Arrays.asList(cardNames).contains(input)))
                     throw new Exception("Invalid input. Please enter a valid suggestion (make sure spelling is correct).");
@@ -441,6 +482,7 @@ public class Game {
                 else if (cardType.equals("weapon") && !weaponCards.containsKey(input))
                     throw new Exception("Invalid Weapon card. Please enter a valid suggestion.");
 
+//                scan.close();
                 return input;
             } catch (Exception e) {
                 System.out.println(e.getMessage());
@@ -451,32 +493,30 @@ public class Game {
     /**
      * This method allows the user to make an accusation (guess the winning deck).
      * If the user correctly guesses the winning deck, they are the winner and the game ends.
-     * If the user incorrectly guesses, they are shown the winning deck and removed from the game.
-     * Players removed from the game can still refute cards but can NOT make suggestions/accusations.
-     *
-     * @param scan -- the current scanner in use.
-     * @param p1   -- the current player's turn.
+     * If the user
+     * @param scan
+     * @param p1
      */
     public void runAccuse(Scanner scan, Player p1) {
+
         System.out.println("\n" + p1.getName() + " do you want to accuse ? [Y / N]: ");
         String ans = scan.next();
 
         if (ans.equalsIgnoreCase("Y")) {
+
             // gets cards user wants to accuse
             CardChar character = charCards.get(getInput("Accuse a Character : ", scan, "char"));
             CardRoom room = roomCards.get(getInput("Accuse a Room : ", scan, "room"));                 // TODO: remove this later. Room should be same room as the player (user does not choose)
             CardWeapon weapon = weaponCards.get(getInput("Accuse a Weapon : ", scan, "weapon"));
-            System.out.println(p1.getName() + " accuses: '" + character.toString() + "' inside the '" + room.toString() + "' using a '" + weapon.toString() + "' as a weapon.");
 
             if (p1.accuse(character, room, weapon)) {
-                setGameWon();
-                displayAccusation(character, room, weapon);
-                System.out.println("Your accusation is correct! " + p1.getName() + " You are the winner of the game ^_^!\n");
+                gameWon();
             } else {
                 p1.setGameOver();
                 displayAccusation(character, room, weapon);
                 System.out.println("Incorrect guess... You're out of the game!\nYou can still refute cards to other players.\n");
             }
+
         } else if (ans.equalsIgnoreCase("N")) {
             return;
         } else
@@ -524,25 +564,7 @@ public class Game {
         return weaponCards;
     }
 
-    /**
-     * Asks the user for the number of players in the game.
-     * This is asked at the start of every game.
-     */
-//    public int getNumOfPlayers() {
-//        int num = 0;
-//        while (true) {
-//            try {
-//                Scanner scan = new Scanner(System.in);
-//                System.out.println("Select number of players in the game (2-6) : ");
-//                num = scan.nextInt();
-//                // do we need to close scanners ??
-//                break;
-//            } catch (Exception e) {
-//                System.out.println("Invalid input. Please enter a number between 2-6.\n");
-//            }
-//        }
-//        return num;
-//    }
+
     public static void main(String... args) {
         int num;
 
@@ -550,10 +572,8 @@ public class Game {
         while (true) {
             try {
                 Scanner scan = new Scanner(System.in);
-                System.out.println("Select number of players in the game (3-6) : ");
+                System.out.println("Select number of players in the game (2-6) : ");
                 num = scan.nextInt();
-
-                if (num < 3 || num > 6) throw new Exception();
                 // do we need to close scanners ??
                 break;
             } catch (Exception e) {
@@ -563,7 +583,7 @@ public class Game {
 
         new Game(num).runGame();
 
-        System.out.println("Game ended successfully... see you next time!");
+        System.out.println("Game ended successfully");
     }
 
 
