@@ -3,10 +3,11 @@ import java.util.HashMap;
 
 /**
  * A tile represents a position on the grid board, where tokens can exist on.
+ *
+ * This should probably be a functional abstract class.
  */
 public class Tile {
     private int x, y;
-    public Boolean visited = false;
 
     public Tile(int x, int y) {
         this.x = x;
@@ -16,6 +17,12 @@ public class Tile {
     public void setName(String name) {}
 
     public void addDoor(int k, Door d) {}
+
+    public HashMap<Integer, Door> getDoors() { return null; }
+
+    public void setCentreTile(Room r) {}
+
+    public Room getCentreTile() { return null;}
 
     public int getX() {
         return x;
@@ -62,6 +69,7 @@ class Room extends Tile{
         Occupants = new ArrayList<>();
     }
 
+
     public void addDoor(int k, Door d) {
         doors.put(k, d);
     }
@@ -93,7 +101,18 @@ class Room extends Tile{
  */
 class Door extends Tile{
 
+    Room centerTile;
+
     public Door(int x, int y) {
         super(x,y);
     }
+
+    public void setCenterTile(Room r) {
+        this.centerTile = r;
+    }
+
+    public Room getCenterTile() {
+        return centerTile;
+    }
+
 }
