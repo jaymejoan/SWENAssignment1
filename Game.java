@@ -6,12 +6,12 @@ import java.util.concurrent.ThreadLocalRandom;
  */
 public class Game {
 
-    private String[] cardNames = new String[]{"Miss Scarlet", "Rev Green", "Colonel Mustard", "Professor Plum", "Mrs Peacock", "Dr Orchid",
+    private String[] cardNames = new String[]{"Miss Scarlet", "Rev Green", "Colonel Mustard", "Professor Plum", "Mrs Peacock", "Mrs White",
             "Candlestick", "Dagger", "Lead Pipe", "Revolver", "Rope", "Wrench",
             "Kitchen", "Ballroom", "Conservatory", "Dining Room", "Billiard Room", "Library", "Lounge", "Hall", "Study"};
 
 
-    private final String[] playerNames = new String[]{"Player1", "Player2", "Player3", "Player4", "Player5", "Player6"};
+    private final String[] playerNames = new String[]{"(P1) Miss Scarlet", "(P2) Rev Green", "(P3) Colonel Mustard", "(P44) Professor Plum", "(P5) Mrs Peacock", "(P6) Mrs White"};
     private final ArrayList<Card> winningDeck = new ArrayList<>();                    // deck containing the three winning cards
     private boolean gameWon = false;
 
@@ -67,12 +67,13 @@ public class Game {
 
 
     /**
-     * Players, Cards and the Tiles should be constructed here
+     * Players, Cards and Tiles are constructed here
      * (as they only need to be initialised once).
      *
      * @param numOfPlayers -- number of players in this game.
      */
     public Game(int numOfPlayers) {
+        ArrayList<HashSet<Card>> hand = dealCards(numOfPlayers);        // List of each player's hand of cards
 
         createTiles();
 
@@ -88,18 +89,12 @@ public class Game {
         for (int i = 12; i < cardNames.length; i++)
             roomCards.put(cardNames[i].toLowerCase(), new CardRoom(cardNames[i]));
 
-
-//        for (int i = 0; i < cards.size(); i++)
-//            System.out.println(i + " name: " + cards.get(i).getNameOfCard() + " type: " + cards.get(i).toString());
-
         createWinningDeck();
 
         // add non-winning cards to deck
         fullDeck.addAll(charCards.values());
         fullDeck.addAll(weaponCards.values());
         fullDeck.addAll(roomCards.values());
-
-        ArrayList<HashSet<Card>> hand = dealCards(numOfPlayers);        // List of each player's hand of cards
 
         // initialise players
         for (int i = 0; i < numOfPlayers; i++) {
@@ -262,16 +257,6 @@ public class Game {
         for (Card card : winningDeck)
             System.out.println("type: " + card.getType() + " name: " + card.getNameOfCard());
 
-
-//        for (Map.Entry<String, CardChar> c : charCards.entrySet()
-//          System.out.println("name: " + c.getKey());
-//
-//        for (Map.Entry<String, CardWeapon> c : weaponCards.entrySet())
-//            System.out.println("name: " + c.getKey());
-//
-//        for (Map.Entry<String, CardRoom> c : roomCards.entrySet())
-//            System.out.println("name: " + c.getKey());
-//
     }
 
     /**
@@ -297,20 +282,22 @@ public class Game {
             count++;
         }
 
-        System.out.println("Cards have been handed out.");
+        System.out.println("Cards have been handed out... Let's start!");
 
         return decks;
     }
 
     /**
-     * Resets the game to its starting state.
+     * Resets the game to its initial starting state.
      */
-    public void reset() {
+    public void resetGame() {
         charCards.clear();
         weaponCards.clear();
         roomCards.clear();
         winningDeck.clear();
+        fullDeck.clear();
         players.clear();
+        gameWon = false;
     }
 
     /**
@@ -318,8 +305,7 @@ public class Game {
      *
      * @return boolean -- true if Player has won game. Otherwise, false.
      */
-    public void gameWon() {
-
+    public void setGameWon() {
         gameWon = true;
     }
 
@@ -333,12 +319,14 @@ public class Game {
         int currentPlayer = 0;
         int nextPlayer;         // the player currentPlayer is suggesting to
 
+        Scanner scan = new Scanner(System.in);
 
         while (!gameWon) {
-            Scanner scan = new Scanner(System.in);
+//            Scanner scan = new Scanner(System.in);
 
             currentPlayer = currentPlayer >= players.size() ? 0 : currentPlayer;
             nextPlayer = currentPlayer;
+            int cardNotFound = 0;
 
             Player p1 = players.get(currentPlayer);
 
@@ -358,32 +346,21 @@ public class Game {
             CardRoom room = roomCards.get(getInput("Suggest a Room : ", scan, "room"));                 // TODO: remove this later. Room should be same room as the player (user does not choose)
             CardWeapon weapon = weaponCards.get(getInput("Suggest a Weapon : ", scan, "weapon"));
 
-            int cardNotFound = 0;
-
             // ask other players until a card is successfully refuted
             for (int i = 0; i <= players.size() - 1; i++) {
 
-
                 // cases when no matching cards are found
-//                if (cardNotFound == players.size() - 1 && (p1.getHand().contains(character) || p1.getHand().contains(room) || p1.getHand().contains(weapon))) {
-                if (cardNotFound == players.size() - 1 &&
-                        (p1.checkHand(character, room, weapon))) {
-                    System.out.println("You have one (or more) of these cards!");
+                if (cardNotFound == players.size() - 1 && (p1.checkHand(character, room, weapon))) {    // case: only this player has these suggested cards
+                    System.out.println("No other players have these cards BUT you have one (or more) of these cards!");
                     currentPlayer++;
                     runAccuse(scan, p1);
-
-
-                    // TODO: check if user wants to accuse
                     break;
-                } else if (cardNotFound == players.size() - 1) {                          // cards are in winning deck (case: user suggests NOT accuses all three winning cards)
+                } else if (cardNotFound == players.size() - 1) {                                        // case: user suggests NOT accuses all three winning cards
                     System.out.println("Interesting... No other players have these cards...");
                     currentPlayer++;
                     runAccuse(scan, p1);
-
-                    //TODO: check if user wants to accuse
                     break;
                 }
-
 
                 nextPlayer = nextPlayer + 1 >= players.size() ? 0 : nextPlayer + 1;    // sets next player
                 Player p2 = players.get(nextPlayer);
@@ -392,35 +369,51 @@ public class Game {
 
                 // if matching card is found, move to next player
                 if (p1.suggest(character, room, weapon, p2)) {
-//                    System.out.println("breaking out of loop.");
                     currentPlayer++;
                     runAccuse(scan, p1);
-
                     break;
                 }
-
                 cardNotFound++;
             }
         }
 
 
+        checkNewGame(scan);
+
+
+    }
+
+    /**
+     * Checks if the user wants to start a new game.
+     *
+     * @param scan -- the current scanner in use.
+     */
+    public void checkNewGame(Scanner scan) {
+        System.out.println("Do you want to play again? [Y / N]: ");
+        String input = scan.next();
+
+        if (input.equalsIgnoreCase("Y")) {
+            resetGame();
+            runGame();
+        } else if (input.equalsIgnoreCase("N")) {
+        } else
+            checkNewGame(scan);
     }
 
     /**
      * A helper method which returns the user's input.
      *
      * @param question -- the question to be asked.
-     *
+     * @param scan     -- the current scanner in use.
+     * @param cardType -- the type of this card.
      * @return String -- the user input.
      */
     private String getInput(String question, Scanner scan, String cardType) {
-
         while (true) {
             try {
                 scan.useDelimiter("\n");
                 System.out.println(question);
                 String input = scan.next().toLowerCase();
-//                System.out.println(input);
 
                 if (!(Arrays.asList(cardNames).contains(input)))
                     throw new Exception("Invalid input. Please enter a valid suggestion (make sure spelling is correct).");
@@ -431,7 +424,6 @@ public class Game {
                 else if (cardType.equals("weapon") && !weaponCards.containsKey(input))
                     throw new Exception("Invalid Weapon card. Please enter a valid suggestion.");
 
-//                scan.close();
                 return input;
             } catch (Exception e) {
                 System.out.println(e.getMessage());
@@ -442,30 +434,31 @@ public class Game {
     /**
      * This method allows the user to make an accusation (guess the winning deck).
      * If the user correctly guesses the winning deck, they are the winner and the game ends.
-     * If the user
-     * @param scan
-     * @param p1
+     * If the user incorrectly guesses, they are shown the winning deck and removed from the game.
+     * Players removed from the game can still refute cards but can NOT make suggestions/accusations.
+     *
+     * @param scan -- the current scanner in use.
+     * @param p1   -- the current player's turn.
      */
     public void runAccuse(Scanner scan, Player p1) {
-
         System.out.println("\n" + p1.getName() + " do you want to accuse ? [Y / N]: ");
         String ans = scan.next();
 
         if (ans.equalsIgnoreCase("Y")) {
-
             // gets cards user wants to accuse
             CardChar character = charCards.get(getInput("Accuse a Character : ", scan, "char"));
             CardRoom room = roomCards.get(getInput("Accuse a Room : ", scan, "room"));                 // TODO: remove this later. Room should be same room as the player (user does not choose)
             CardWeapon weapon = weaponCards.get(getInput("Accuse a Weapon : ", scan, "weapon"));
 
             if (p1.accuse(character, room, weapon)) {
-                gameWon();
+                setGameWon();
+                displayAccusation(character, room, weapon);
+                System.out.println("Your accusation is correct! " + p1.getName() + " You are the winner of the game ^_^!\n");
             } else {
                 p1.setGameOver();
                 displayAccusation(character, room, weapon);
                 System.out.println("Incorrect guess... You're out of the game!\nYou can still refute cards to other players.\n");
             }
-
         } else if (ans.equalsIgnoreCase("N")) {
             return;
         } else
@@ -513,7 +506,25 @@ public class Game {
         return weaponCards;
     }
 
-
+    /**
+     * Asks the user for the number of players in the game.
+     * This is asked at the start of every game.
+     */
+//    public int getNumOfPlayers() {
+//        int num = 0;
+//        while (true) {
+//            try {
+//                Scanner scan = new Scanner(System.in);
+//                System.out.println("Select number of players in the game (2-6) : ");
+//                num = scan.nextInt();
+//                // do we need to close scanners ??
+//                break;
+//            } catch (Exception e) {
+//                System.out.println("Invalid input. Please enter a number between 2-6.\n");
+//            }
+//        }
+//        return num;
+//    }
     public static void main(String... args) {
         int num;
 
@@ -521,8 +532,10 @@ public class Game {
         while (true) {
             try {
                 Scanner scan = new Scanner(System.in);
-                System.out.println("Select number of players in the game (2-6) : ");
+                System.out.println("Select number of players in the game (3-6) : ");
                 num = scan.nextInt();
+
+                if (num < 3 || num > 6) throw new Exception();
                 // do we need to close scanners ??
                 break;
             } catch (Exception e) {
@@ -532,7 +545,7 @@ public class Game {
 
         new Game(num).runGame();
 
-        System.out.println("Game ended successfully");
+        System.out.println("Game ended successfully... see you next time!");
     }
 
 
