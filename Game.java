@@ -14,6 +14,8 @@ public class Game {
     private final String[] playerNames = new String[]{"Miss Scarlett (P1)", "Mr. Green (P2)", "Colonel Mustard (P3)", "Professor Plum (P4)", "Mrs. Peacock (P5)", "Mrs. White (P6)"};
     private final ArrayList<Card> winningDeck = new ArrayList<>();                    // deck containing the three winning cards
     private boolean gameWon = false;
+    private int currentPlayer = 0;
+    private int nextPlayer;         // the player currentPlayer is suggesting to
 
     HashMap<String, CardChar> charCards = new HashMap<>();
     HashMap<String, CardWeapon> weaponCards = new HashMap<>();
@@ -316,9 +318,6 @@ public class Game {
      * Executes the game.
      */
     public void runGame() {
-        int currentPlayer = 0;
-        int nextPlayer;         // the player currentPlayer is suggesting to
-
         Scanner scan = new Scanner(System.in);
 
         while (!gameWon) {
@@ -340,58 +339,25 @@ public class Game {
             // TODO: role dice and add move tokens FIRST before suggestion
             p1.displayCards();
 
-            System.out.println("\n" + p1.getName() + " do you want to accuse ? [Y / N]: ");
-            String ans = scan.next();
 
-
-            // gets cards user wants to suggest
-            CardChar character = charCards.get(getInput("\nSuggest a Character : ", scan, "char"));
-            CardRoom room = roomCards.get(getInput("Suggest a Room : ", scan, "room"));                 // TODO: remove this later. Room should be same room as the player (user does not choose)
-            CardWeapon weapon = weaponCards.get(getInput("Suggest a Weapon : ", scan, "weapon"));
-
-            // suggest to current player first
-            System.out.println(p1.getName() + " suggests to " + p1.getName() + ": '" + character.toString() + "' inside the '" + room.toString() + "' using a '" + weapon.toString() + "' as a weapon.");
-            if (p1.suggest(character, room, weapon, p1)) {
-                currentPlayer++;
-            } else {
-//            Card card = p1.refute(character, room, weapon, p1);
-//                System.out.println("No other players have these cards BUT you have one (or more) of these cards!");
-
-
-                // ask other players until a card is successfully refuted
-                for (int i = 0; i <= players.size() - 1; i++) {
-                    //TODO: should we start with asking player 1 first before the other players ? simple if else solution
-
-                    // cases when no matching cards are found
-//                    if (cardNotFound == players.size() - 1 && (p1.checkHand(character, room, weapon))) {    // case: only this player has these suggested cards --> still needed?
-//                        System.out.println("No other players have these cards BUT you have one (or more) of these cards!");
-//                        currentPlayer++;
-//                        runAccuse(scan, p1);
-//                        break;
-//                    } else
-
-                    // case: user suggests NOT accuses all three winning cards --> still needed ?
-                    if (cardNotFound == players.size() - 1) {
-                        System.out.println("Interesting... No other players have these cards...");
-                        currentPlayer++;
-                        runAccuse(scan, p1);
-                        break;
-                    }
-
-                    nextPlayer = nextPlayer + 1 >= players.size() ? 0 : nextPlayer + 1;    // sets next player
-                    Player p2 = players.get(nextPlayer);
-
-                    System.out.println(p1.getName() + " suggests to " + p2.getName() + ": '" + character.toString() + "' inside the '" + room.toString() + "' using a '" + weapon.toString() + "' as a weapon.");
-
-                    // if matching card is found, move to next player
-                    if (p1.suggest(character, room, weapon, p2)) {
-                        currentPlayer++;
-                        runAccuse(scan, p1);
-                        break;
-                    }
-                    cardNotFound++;
+            while (true) {
+                System.out.println("\n" + p1.getName() + " do you want to 'suggest' or 'accuse' ? [suggest / accuse]: ");
+                String ans = scan.next();
+                if (ans.equalsIgnoreCase("suggest")) {
+                    runSuggest(scan, p1, cardNotFound);
+                    break;
+                } else if (ans.equalsIgnoreCase("accuse")) {
+                    runAccuse(scan, p1);
+                    break;
+                } else {
+                    System.out.println("Invalid input. Please type in either 'suggest' or 'accuse'.");
                 }
             }
+//             if suggest  -> run suggestion
+            // if accuse -> run accuse
+            // if invalid answer
+
+
         }
 
 
@@ -429,7 +395,7 @@ public class Game {
         while (true) {
             try {
                 scan.useDelimiter("\n");
-                System.out.println(question);
+                System.out.print(question);
                 String input = scan.next().toLowerCase();
 
                 if (!(Arrays.asList(cardNames).contains(input)))
@@ -448,6 +414,57 @@ public class Game {
         }
     }
 
+    public void runSuggest(Scanner scan, Player p1, int cardNotFound) {
+        // gets cards user wants to suggest
+        CardChar character = charCards.get(getInput("\nSuggest a Character : ", scan, "char"));
+        CardRoom room = roomCards.get(getInput("Suggest a Room : ", scan, "room"));                 // TODO: remove this later. Room should be same room as the player (user does not choose)
+        CardWeapon weapon = weaponCards.get(getInput("Suggest a Weapon : ", scan, "weapon"));
+
+        // suggest to current player first
+        System.out.println(p1.getName() + " suggests to " + p1.getName() + ": '" + character.toString() + "' inside the '" + room.toString() + "' using a '" + weapon.toString() + "' as a weapon.");
+        if (p1.suggest(character, room, weapon, p1)) {
+            currentPlayer++;
+        } else {
+//            Card card = p1.refute(character, room, weapon, p1);
+//                System.out.println("No other players have these cards BUT you have one (or more) of these cards!");
+
+
+            // ask other players until a card is successfully refuted
+            for (int i = 0; i <= players.size() - 1; i++) {
+                //TODO: should we start with asking player 1 first before the other players ? simple if else solution
+
+                // cases when no matching cards are found
+//                    if (cardNotFound == players.size() - 1 && (p1.checkHand(character, room, weapon))) {    // case: only this player has these suggested cards --> still needed?
+//                        System.out.println("No other players have these cards BUT you have one (or more) of these cards!");
+//                        currentPlayer++;
+//                        runAccuse(scan, p1);
+//                        break;
+//                    } else
+
+                // case: user suggests NOT accuses all three winning cards --> still needed ?
+                if (cardNotFound == players.size() - 1) {
+                    System.out.println("Interesting... No other players have these cards...");
+                    currentPlayer++;
+//                    runAccuse(scan, p1);
+                    break;
+                }
+
+                nextPlayer = nextPlayer + 1 >= players.size() ? 0 : nextPlayer + 1;    // sets next player
+                Player p2 = players.get(nextPlayer);
+
+                System.out.println(p1.getName() + " suggests to " + p2.getName() + ": '" + character.toString() + "' inside the '" + room.toString() + "' using a '" + weapon.toString() + "' as a weapon.");
+
+                // if matching card is found, move to next player
+                if (p1.suggest(character, room, weapon, p2)) {
+                    currentPlayer++;
+//                    runAccuse(scan, p1);
+                    break;
+                }
+                cardNotFound++;
+            }
+        }
+    }
+
     /**
      * This method allows the user to make an accusation (guess the winning deck).
      * If the user correctly guesses the winning deck, they are the winner and the game ends.
@@ -458,31 +475,34 @@ public class Game {
      * @param p1   -- the current player's turn.
      */
     public void runAccuse(Scanner scan, Player p1) {
-        System.out.println("\n" + p1.getName() + " do you want to accuse ? [Y / N]: ");
-        String ans = scan.next();
+//        System.out.println("\n" + p1.getName() + " do you want to accuse ? [Y / N]: ");
+//        String ans = scan.next();
 
-        if (ans.equalsIgnoreCase("Y")) {
-            // gets cards user wants to accuse
-            CardChar character = charCards.get(getInput("Accuse a Character : ", scan, "char"));
-            CardRoom room = roomCards.get(getInput("Accuse a Room : ", scan, "room"));                 // TODO: remove this later. Room should be same room as the player (user does not choose)
-            CardWeapon weapon = weaponCards.get(getInput("Accuse a Weapon : ", scan, "weapon"));
-            System.out.println(p1.getName() + " accuses: '" + character.toString() + "' inside the '" + room.toString() + "' using a '" + weapon.toString() + "' as a weapon.");
+//        if (ans.equalsIgnoreCase("Y")) {
+        // gets cards user wants to accuse
+        CardChar character = charCards.get(getInput("Accuse a Character : ", scan, "char"));
+        CardRoom room = roomCards.get(getInput("Accuse a Room : ", scan, "room"));                 // TODO: remove this later. Room should be same room as the player (user does not choose)
+        CardWeapon weapon = weaponCards.get(getInput("Accuse a Weapon : ", scan, "weapon"));
+        System.out.println(p1.getName() + " accuses: '" + character.toString() + "' inside the '" + room.toString() + "' using a '" + weapon.toString() + "' as a weapon.");
 
-            if (p1.accuse(character, room, weapon)) {
-                setGameWon();
-                displayAccusation(character, room, weapon);
-                System.out.println("Your accusation is correct! " + p1.getName() + " You are the winner of the game ^_^!\n");
-            } else {
-                p1.setGameOver();
-                displayAccusation(character, room, weapon);
-                System.out.println("Incorrect guess... You're out of the game!\nYou can still refute cards to other players.\n");
-            }
-        } else if (ans.equalsIgnoreCase("N")) {
-            return;
-        } else
-            runAccuse(scan, p1);
+        if (p1.accuse(character, room, weapon)) {
+            setGameWon();
+            displayAccusation(character, room, weapon);
+            System.out.println("Your accusation is correct! " + p1.getName() + " is the winner of the game ^_^!\n");
+        } else {
+            p1.setGameOver();
+            displayAccusation(character, room, weapon);
+            System.out.println("Incorrect guess... " + p1.getName() + " is out of the game!\nYou can still refute cards to other players.\n");
+        }
+
+
+//        else if (ans.equalsIgnoreCase("N")) {
+//            return;
+//        } else
+//            runAccuse(scan, p1);
 
     }
+
 
     /**
      * Displays the user accusation on the screen.
@@ -557,7 +577,7 @@ public class Game {
                 // do we need to close scanners ??
                 break;
             } catch (Exception e) {
-                System.out.println("Invalid input. Please enter a number between 2-6.\n");
+                System.out.println("Invalid input. Please enter a number between 3-6.\n");
             }
         }
 
