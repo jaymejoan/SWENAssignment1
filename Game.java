@@ -1,4 +1,3 @@
-import java.lang.reflect.Array;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -15,8 +14,7 @@ public class Game {
     private final String[] playerNames = new String[]{"Miss Scarlett (P1)", "Mr. Green (P2)", "Colonel Mustard (P3)", "Professor Plum (P4)", "Mrs. Peacock (P5)", "Mrs. White (P6)"};
     private final ArrayList<Card> winningDeck = new ArrayList<>();                    // deck containing the three winning cards
     private boolean gameWon = false;
-    private int currentPlayer = 0;
-    private int nextPlayer;         // the player currentPlayer is suggesting to
+    private int currentPlayer = 0, nextPlayer, totalPlayers, eliminatedPlayers = 0;
     private Board board;
     private ArrayList<Integer> boardSetUp;
 
@@ -82,6 +80,7 @@ public class Game {
     public Game(int numOfPlayers) {
         board = new Board();
         boardSetUp = board.boardSetUp;
+        totalPlayers = numOfPlayers;
 
 //        createTiles(); TODO: do we still need this or is it already executed in board?
 
@@ -262,8 +261,6 @@ public class Game {
         roomCards.remove(cardNames[randomRoom].toLowerCase());
 
         // testing
-        System.out.println("size: " + winningDeck.size());
-
         for (Card card : winningDeck)
             System.out.println("type: " + card.getType() + " name: " + card.getNameOfCard());
 
@@ -380,13 +377,20 @@ public class Game {
             Door door = null;
             Room currentRoom = p1.getCurrentRoom();
 
+            // game over state
+            if (eliminatedPlayers == players.size()) {
+                System.out.println("No one solved the mystery... GAME OVER!");
+                displayAccusation(new CardChar(""), new CardRoom(""), new CardWeapon(""));
+                break;
+            }
+
             // skips players not in game
             if (p1.getGameOver()) {
                 currentPlayer++;
                 continue;
             }
 
-            System.out.println("\nIt's " + p1.getName() + "'s turn.");
+            System.out.println("\nIt's " + p1.getName() + "'s turn... you rolled " + dice);
 
             // asks the user which door to exit
             if (currentRoom != null) {
@@ -400,7 +404,6 @@ public class Game {
                         System.out.println("Invalid input please enter a valid index.\n");
                     }
                 }
-
             }
 
             // co-ordinates of this player's character token and the door
@@ -563,6 +566,7 @@ public class Game {
         } else {                                        // incorrect accusation (player eliminated)
             p1.setGameOver();
             displayAccusation(character, room, weapon);
+            eliminatedPlayers++;
             System.out.println("Incorrect guess... " + p1.getName() + " is out of the game!\nYou can still refute cards to other players.\n");
         }
     }
