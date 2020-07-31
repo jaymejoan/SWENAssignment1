@@ -207,28 +207,52 @@ public class Game {
         //keep asking the user until there's a valid index
         while (true) {
             try {
-                System.out.print("\nWhat room would you like to move to? [1 - " + reachableRooms.size() + "] or enter [0] for none of these: ");
-                int num = scan.nextInt();
-                if(num != 0) return  reachableRooms.get(num - 1);
+                if(!reachableRooms.isEmpty()) {
+                    System.out.print("\nWhat room would you like to move to? [1 - " + reachableRooms.size() + "] or enter [0] for none of these: ");
+                    int num = scan.nextInt();
+                    if (num != 0) {
+                        p1.move(reachableRooms.get(num - 1));
+                        return reachableRooms.get(num - 1);
+                    }
 
-                unreachableRooms.removeAll(reachableRooms);
+                    unreachableRooms.removeAll(reachableRooms);
+                }
+
+                //move towards a room
                 System.out.print("\nWhat room would you like to move towards? [ ");
                 for(Room room : unreachableRooms){
                     System.out.print(room.getName() + ", ");
                 }
                 System.out.print("] enter [1 - " + unreachableRooms.size() + "]:");
-                //@todo THIS PART OF CODE IS NOT WORKING
-//                Room moveTo = unreachableRooms.get(scan.nextInt()-1);
-//                System.out.println("you choose to move to " + moveTo.getName());
-//                Tile tile =  p1.getToken().BF(new HashSet<>(),unreachableRooms.get(2),new HashSet<>());
-//                System.out.println("Tiles: " + tile);
-
-               // board.drawBoard(tile.getX(),tile.getY());
-      //          return tile;
+                Room moveTo = unreachableRooms.get(scan.nextInt()-1);
+                System.out.println("you choose to move to " + moveTo.getName());
+                Tile tile =  p1.getToken().BF(new HashSet<>(),closetDoor(moveTo,p1.getToken()),range);
+                System.out.println("Tiles: " + tile.getX() + "  " + tile.getY());
+                p1.move(tile);
+                return tile;
             } catch (Exception e) {
+                e.printStackTrace();
                 System.out.println("Invalid input please enter a valid index.\n");
             }
         }
+    }
+
+    public Door closetDoor(Room room , TokenChar tokenChar){
+        if(room.getDoors().size() <= 1){
+            return room.getDoors().get(1);
+        } else {
+            double shortestLength = Double.MAX_VALUE;
+            Door closetDoor = null;
+            for (Door door : room.getDoors().values()){
+                double newLength = Math.sqrt(door.getX() - tokenChar.x)*(door.getX() - tokenChar.x) + (door.getY() - tokenChar.y)*(door.getY() - tokenChar.y);
+                if( newLength < shortestLength ){
+                    shortestLength = newLength;
+                    closetDoor = door;
+                }
+            }
+            return closetDoor;
+        }
+
     }
 
 
@@ -273,6 +297,7 @@ public class Game {
 //                    scan.close();
                         break;
                     } catch (Exception e) {
+
                         System.out.println("Invalid input please enter a valid index.\n");
                     }
                 }
@@ -288,23 +313,26 @@ public class Game {
             }
 
             // moves the player towards/into a room
-            HashSet<Tile> tiles = tokenChar.getVisitableTiles(xPos, yPos, 12, new HashSet<Tile>());
+            HashSet<Tile> tiles = tokenChar.getVisitableTiles(xPos, yPos, dice, new HashSet<Tile>());
             Tile moveToTile = getReachableRoom(tiles, scan, p1);
-
-                //board.drawBoard(p1.getToken().x,p1.getToken().y);
-            if(moveToTile instanceof Room) {
-                System.out.println(p1 + " is moving to : " + ((Room) moveToTile).getName());
-                p1.move(((Room) moveToTile));
-                System.out.println(p1 + " is now in : " + p1.getCurrentRoom().getName());
-            }
             board.drawBoard(p1.getToken().x,p1.getToken().y);
+            boolean onlyAccuse = false;
+            if(moveToTile instanceof Room) {
+                System.out.println(p1 + " is now in : " + p1.getCurrentRoom().getName());
+            } else {
+                onlyAccuse = true;
+            }
+
             p1.displayCards();
 
 
             // executes suggest or accuse
             while (true) {
                 //TODO: if player is not in a room (ie. in hall), skip over ... can they still accuse?
-
+                if(onlyAccuse){
+                    currentPlayer++;
+                    break;
+                }
                 System.out.println("\n" + p1.getName() + " do you want to 'suggest' or 'accuse' ? [suggest / accuse]: ");
                 String ans = scan.next();
                 if (ans.equalsIgnoreCase("suggest")) {

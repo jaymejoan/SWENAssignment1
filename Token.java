@@ -99,19 +99,26 @@ class TokenChar extends Token {
 
             if(currentTile instanceof Blocked) continue;  //Do not find the neighbours of an obstacle
 
+            Tile nextTile;
             //add to the queue if the left/right cells are valid
             for (int i = -1; i < 2; i += 2) {
-                if (currentTile.getY() + i >= 0 && currentTile.getY() + i <= tiles[0].length) {
-                    queue.add(tiles[currentTile.getX()][currentTile.getY() + i]);
-                    visited.add(tiles[currentTile.getX()][currentTile.getY() + i]);
+                if (currentTile.getX() + i >= 0 && currentTile.getX() + i < board.board[0].length ) {
+                    nextTile = board.board[currentTile.getY()][currentTile.getX() + i];
+                    if(!visited.contains(nextTile)) {
+                        queue.add(nextTile);
+                        visited.add(nextTile);
+                    }
                 }
             }
 
             //add to the queue if the top/down cells are valid
             for (int i = -1; i < 2; i += 2) {
-                if (currentTile.getX() + i >= 0 && currentTile.getX() + i <= tiles.length) {
-                    queue.add(tiles[currentTile.getX() + i][currentTile.getY()]);
-                    visited.add(tiles[currentTile.getX() + i][currentTile.getY()]);
+                if (currentTile.getY() + i >= 0 && currentTile.getY() + i < board.board.length) {
+                    nextTile = board.board[currentTile.getY() + i][currentTile.getX()];
+                    if(!visited.contains(nextTile)) {
+                        queue.add(nextTile);
+                        visited.add(nextTile);
+                    }
                 }
             }
         }

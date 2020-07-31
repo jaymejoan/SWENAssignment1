@@ -196,10 +196,12 @@ public class Player {
     }
 
     // line 23 "model.ump"
-    public void move(Room room) {
-        currentRoom = room;
-        tokenChar.x = room.getX();
-        tokenChar.y = room.getY();
+    public void move(Tile tile) {
+        if(tile instanceof Room){
+            currentRoom = (Room) tile;
+        }
+        tokenChar.x = tile.getX();
+        tokenChar.y = tile.getY();
         System.out.println("current Position: x: " + tokenChar.x + "  y: " + tokenChar.y);
     }
 
