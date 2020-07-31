@@ -65,7 +65,7 @@ public class Player {
         return gameOver;
     }
 
-    public TokenChar getToken() {
+    public TokenChar getToken(){
         return tokenChar;
     }
 
@@ -86,7 +86,7 @@ public class Player {
     }
 
     /**
-     * Checks if this player's hand contains any of the passed in cards. COULD DELETE
+     * Checks if this player's hand contains any of the passed in cards.
      */
     public boolean checkHand(Card character, Card room, Card weapon) {
         for (Card c : cards) {
@@ -110,6 +110,47 @@ public class Player {
         }
         return false;
     }
+
+    public void displayCards() {
+        //convert to map card
+        HashMap<String, Card> charCards = new HashMap<>(game.charCards);
+        HashMap<String, Card> weaponCards = new HashMap<>(game.weaponCards);
+        HashMap<String, Card> roomCards = new HashMap<>(game.roomCards);
+        HashMap<String, Card> allCard = new HashMap<>();
+        int colSize = 3;
+
+        String[][] printArray = new String[roomCards.size()][colSize]; //for printing everything in column
+        makeArray(charCards,0,printArray,allCard);
+        makeArray(roomCards,1,printArray, allCard);
+        makeArray(weaponCards,2,printArray, allCard);
+
+
+        System.out.println(String.format("\n%-20s%-7s%15s%-20s%-7s%15s%-20s%-7s","CHARACTER","FOUND","","ROOM","FOUND","","WEAPON","FOUND"));
+        for (int row = 0; row < roomCards.size(); row++){
+            for(int col = 0; col < colSize; col++){
+                String key = printArray[row][col];
+                if(key == null){
+                    System.out.print(String.format("%-20s%-7s%15s","","",""));
+                    continue;
+                }
+                Card card = allCard.get(key);
+                System.out.print(String.format("%-20s%-7s%15s",
+                        card.getNameOfCard(),
+                        knownCards.get(card.getType()).contains(card)?"  X":"",""));
+            }
+            System.out.println();
+
+        }
+    }
+    public void makeArray(HashMap<String, Card> map, int col, String[][] printArray, HashMap<String, Card> allCard){
+        allCard.putAll(map);
+        int row = 0;
+        for(String charKey : map.keySet()){
+            printArray[row][col] = charKey;
+            row++;
+        }
+    }
+
 
     // line 17 "model.ump"
     public Card refute(CardChar character, CardRoom room, CardWeapon weapon, Player other) {
@@ -139,7 +180,6 @@ public class Player {
                     Scanner scan = new Scanner(System.in);
                     System.out.println(other.getName() + " these are your options: " + options.toString() + "\nWhat would you like to refute ? Please select an index [ 1 , 2 , 3 ] : ");
                     Card card = options.get(scan.nextInt() - 1);
-                    System.out.println(other.getName() + " has refuted " + options.get(0).getNameOfCard() + ".");   //BEA: double check this works!
 //                    scan.close();
                     return card;
                 } catch (Exception e) {
@@ -155,47 +195,6 @@ public class Player {
         return game.getWinningDeck().contains(character) && game.getWinningDeck().contains(room) && game.getWinningDeck().contains(weapon);
     }
 
-    public void displayCards() {
-        //convert to map card
-        HashMap<String, Card> charCards = new HashMap<>(game.charCards);
-        HashMap<String, Card> weaponCards = new HashMap<>(game.weaponCards);
-        HashMap<String, Card> roomCards = new HashMap<>(game.roomCards);
-        HashMap<String, Card> allCard = new HashMap<>();
-        int colSize = 3;
-
-        String[][] printArray = new String[roomCards.size()][colSize]; //for printing everything in column
-        makeArray(charCards, 0, printArray, allCard);
-        makeArray(roomCards, 1, printArray, allCard);
-        makeArray(weaponCards, 2, printArray, allCard);
-
-
-        System.out.println(String.format("\n%-20s%-7s%15s%-20s%-7s%15s%-20s%-7s", "CHARACTER", "FOUND", "", "ROOM", "FOUND", "", "WEAPON", "FOUND"));
-        for (int row = 0; row < roomCards.size(); row++) {
-            for (int col = 0; col < colSize; col++) {
-                String key = printArray[row][col];
-                if (key == null) {
-                    System.out.print(String.format("%-20s%-7s%15s", "", "", ""));
-                    continue;
-                }
-                Card card = allCard.get(key);
-                System.out.print(String.format("%-20s%-7s%15s",
-                        card.getNameOfCard(),
-                        knownCards.get(card.getType()).contains(card) ? "  X" : "", ""));
-            }
-            System.out.println();
-
-        }
-    }
-
-    public void makeArray(HashMap<String, Card> map, int col, String[][] printArray, HashMap<String, Card> allCard) {
-        allCard.putAll(map);
-        int row = 0;
-        for (String charKey : map.keySet()) {
-            printArray[row][col] = charKey;
-            row++;
-        }
-    }
-
     // line 23 "model.ump"
     public void move(Room room) {
         currentRoom = room;
@@ -208,7 +207,7 @@ public class Player {
         gameOver = true;
     }
 
-    public Room getCurrentRoom() {
+    public Room getCurrentRoom(){
         return currentRoom;
     }
 

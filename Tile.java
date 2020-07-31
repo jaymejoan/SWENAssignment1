@@ -3,10 +3,11 @@ import java.util.HashMap;
 
 /**
  * A tile represents a position on the grid board, where tokens can exist on.
+ *
+ * This should probably be a functional abstract class.
  */
 public class Tile {
     private int x, y;
-    public Boolean visited = false;
 
     public Tile(int x, int y) {
         this.x = x;
@@ -17,6 +18,12 @@ public class Tile {
 
     public void addDoor(int k, Door d) {}
 
+    public HashMap<Integer, Door> getDoors() { return null; }
+
+    public void setCentreTile(Room r) {}
+
+    public Room getCentreTile() { return null;}
+
     public int getX() {
         return x;
     }
@@ -24,6 +31,8 @@ public class Tile {
     public int getY() {
         return y;
     }
+
+    public String toString() { return null;}
 }
 
 /**
@@ -35,12 +44,22 @@ class Blocked extends Tile {
     public Blocked(int x, int y) {
         super(x,y);
     }
+
+    public String toString() {
+        return "#";
+    }
 }
 
 class Hallway extends Tile {
 
+    public boolean visited = false;
+
     public Hallway(int x, int y) {
         super(x,y);
+    }
+
+    public String toString() {
+        return !visited ? "░" : "X";
     }
 }
 
@@ -53,7 +72,7 @@ class Hallway extends Tile {
  */
 class Room extends Tile{
     private String name;
-    private ArrayList<Integer> Occupants; // Integer Placeholder
+    private ArrayList<Token> Occupants; // Integer Placeholder
     private HashMap<Integer, Door> doors = new HashMap<>();
 
     public Room(int x, int y) {
@@ -78,12 +97,18 @@ class Room extends Tile{
         return name;
     }
 
-    public ArrayList<Integer> getOccupants() {
+    public ArrayList<Token> getOccupants() {
         return Occupants;
     }
 
-    public void addOccupant(int token) {
+    public void addOccupant(Token token) {
         Occupants.add(token);
+    }
+
+    public void removeOccupant(Token token){ Occupants.remove(token);}
+
+    public String toString() {
+        return "█";
     }
 }
 
@@ -93,7 +118,23 @@ class Room extends Tile{
  */
 class Door extends Tile{
 
+    Room centerTile;
+
+
     public Door(int x, int y) {
         super(x,y);
     }
+
+    public void setCenterTile(Room r) {
+        this.centerTile = r;
+    }
+
+    public Room getCenterTile() {
+        return centerTile;
+    }
+
+    public String toString() {
+        return "O";
+    }
+
 }
