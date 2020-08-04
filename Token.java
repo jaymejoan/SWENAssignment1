@@ -67,7 +67,10 @@ class TokenChar extends Token {
 //    }
 
     public HashSet<Tile> getVisitableTiles(int row, int col, int dice, HashSet<Tile> visited) {
+       // System.out.println("Currently at: " + row  + " : " + col);
         if (dice > -1 && (board.board[row][col] instanceof Hallway || board.board[row][col] instanceof Door)) {  //Check that the player is able to move and that the current tile has
+            //System.out.println("Visited: " + row  + " : " + col);
+
             visited.add(board.board[row][col]);
             if (board.board[row][col] instanceof Hallway) {
                 ((Hallway) board.board[row][col]).visited = true;
@@ -94,10 +97,12 @@ class TokenChar extends Token {
 
         while (!queue.isEmpty()) {
             Tile currentTile = queue.remove();
+            if (movementRange.contains(currentTile) && !(currentTile instanceof Room)){
+                return currentTile;
+            }    //Found the closest tile of the player's movement that is not a room
 
-            if (movementRange.contains(currentTile)) return currentTile;    //Found the closest tile of the player's movement
 
-            if(currentTile instanceof Blocked) continue;  //Do not find the neighbours of an obstacle
+            if(currentTile instanceof Blocked || currentTile instanceof Room) continue;  //Do not find the neighbours of an obstacle
 
             Tile nextTile;
             //add to the queue if the left/right cells are valid

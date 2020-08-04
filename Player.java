@@ -29,6 +29,7 @@ public class Player {
         gameOver = false;
         game = GAME;
         cards = playerCards;
+        currentRoom = null;
         String[] cardsType = {"character", "room", "weapon"};
 
 
@@ -199,10 +200,17 @@ public class Player {
     public void move(Tile tile) {
         if(tile instanceof Room){
             currentRoom = (Room) tile;
+            System.out.println(this.getName() + " is now in : " + currentRoom.getName());
         }
         tokenChar.x = tile.getX();
         tokenChar.y = tile.getY();
         System.out.println("current Position: x: " + tokenChar.x + "  y: " + tokenChar.y);
+    }
+
+    public void leaveRoom(Door door){
+        currentRoom = null;
+        tokenChar.x = door.getX();
+        tokenChar.y = door.getY();
     }
 
     public void setGameOver() {
@@ -212,6 +220,7 @@ public class Player {
     public Room getCurrentRoom(){
         return currentRoom;
     }
+
 
 
     public String toString() {

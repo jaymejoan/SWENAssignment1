@@ -45,7 +45,7 @@ public class Game {
         // initialise Character cards and tokens
         for (int i = 0; i <= 5; i++) {
             charCards.put(cardNames[i].toLowerCase(), new CardChar(cardNames[i]));
-            charTokenMap.put(cardNames[i].toLowerCase(),new TokenChar(cardNames[i], yStart[i], xStart[i], board));
+            charTokenMap.put(cardNames[i].toLowerCase(),new TokenChar(cardNames[i], xStart[i], yStart[i], board));
         }
 
         // initialise Weapon cards and tokens
@@ -225,8 +225,11 @@ public class Game {
                 }
                 System.out.print("] enter [1 - " + unreachableRooms.size() + "]:");
                 Room moveTo = unreachableRooms.get(scan.nextInt()-1);
-                System.out.println("you choose to move to " + moveTo.getName());
-                Tile tile =  p1.getToken().BF(new HashSet<>(),closetDoor(moveTo,p1.getToken()),range);
+                System.out.println("you choose to move towards " + moveTo.getName());
+                System.out.println("moveto: " + moveTo + " position: " + p1.getToken().y + " " + p1.getToken().x);
+                Door door = closetDoor(moveTo,p1.getToken());
+                System.out.println("Door: " + door);
+                Tile tile =  p1.getToken().BF(new HashSet<>(),door,range);
                 System.out.println("Tiles: " + tile.getX() + "  " + tile.getY());
                 p1.move(tile);
                 return tile;
@@ -238,13 +241,14 @@ public class Game {
     }
 
     public Door closetDoor(Room room , TokenChar tokenChar){
+
         if(room.getDoors().size() <= 1){
             return room.getDoors().get(1);
         } else {
             double shortestLength = Double.MAX_VALUE;
             Door closetDoor = null;
             for (Door door : room.getDoors().values()){
-                double newLength = Math.sqrt(door.getX() - tokenChar.x)*(door.getX() - tokenChar.x) + (door.getY() - tokenChar.y)*(door.getY() - tokenChar.y);
+                double newLength = Math.sqrt((door.getX() - tokenChar.x)*(door.getX() - tokenChar.x) + (door.getY() - tokenChar.y)*(door.getY() - tokenChar.y));
                 if( newLength < shortestLength ){
                     shortestLength = newLength;
                     closetDoor = door;
@@ -270,7 +274,7 @@ public class Game {
             Player p1 = players.get(currentPlayer);
             TokenChar tokenChar = p1.getToken();
             Door door = null;
-            Room currentRoom = p1.getToken().room;
+
 
             // game over state
             if (eliminatedPlayers == players.size()) {
@@ -286,6 +290,8 @@ public class Game {
             }
 
             System.out.println("\nIt's " + p1.getName() + "'s turn... you rolled " + dice);
+            Room currentRoom = p1.getCurrentRoom();
+            System.out.println(currentRoom +" "+ p1.getToken().y + " " + p1.getToken().x);
 
             // asks the user which door to exit
             if (currentRoom != null) {
@@ -294,6 +300,7 @@ public class Game {
                         System.out.print("\nYou are in: " + currentRoom.getName());
                         System.out.print("\nWhat door do you wish to exit? [1 - " + currentRoom.getDoors().size() + "] : " + currentRoom.getDoors().toString());
                         door = currentRoom.getDoors().get(scan.nextInt());  //TODO: check this doesnt result in error for invalid inputs
+                        p1.leaveRoom(door);
 //                    scan.close();
                         break;
                     } catch (Exception e) {
@@ -313,12 +320,12 @@ public class Game {
             }
 
             // moves the player towards/into a room
-            HashSet<Tile> tiles = tokenChar.getVisitableTiles(xPos, yPos, dice, new HashSet<Tile>());
+            HashSet<Tile> tiles = tokenChar.getVisitableTiles(yPos, xPos, dice, new HashSet<Tile>());
             Tile moveToTile = getReachableRoom(tiles, scan, p1);
             board.drawBoard(p1.getToken().x,p1.getToken().y);
             boolean onlyAccuse = false;
             if(moveToTile instanceof Room) {
-                System.out.println(p1 + " is now in : " + p1.getCurrentRoom().getName());
+
             } else {
                 onlyAccuse = true;
             }
@@ -430,6 +437,16 @@ public class Game {
         //add suggested tokens to the room it's been suggest in
         TokenChar tokenChar = charTokenMap.get(charInput);
         TokenWeapon tokenWeapon = weaponTokenMap.get(weaponInput);
+
+        //remove tokens from the rooms they used to be in
+        if(tokenChar.room != null){
+            tokenChar.room.removeOccupant(tokenChar);
+        }
+        if(tokenWeapon.room != null){
+            tokenWeapon.room.removeOccupant(tokenWeapon);
+        }
+
+
         tokenChar.room = currentRoom;
         tokenWeapon.room = currentRoom;
         currentRoom.addOccupant(tokenChar);
