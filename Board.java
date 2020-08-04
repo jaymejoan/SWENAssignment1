@@ -187,8 +187,8 @@ public class Board {
                 }
                 else {
                     System.out.print(board[i][j].toString());
-                    if(board[i][j] instanceof Hallway) ((Hallway) board[i][j]).visited = false;
                 }
+                if(board[i][j] instanceof Hallway) ((Hallway) board[i][j]).visited = false;
             }
         }
     }
