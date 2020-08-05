@@ -181,19 +181,24 @@ public class Board {
         for(int i = 0; i < 25; i++) {
             if(i == 10) { gap = "";}
             System.out.print("\n" + gap +  i + "   ");
+
+
             for(int j = 0; j < 24; j++) {
+
                 if (i == y && j == x) {
                     System.out.print("P");
                 }
                 else {
                     System.out.print(board[i][j].toString());
                 }
+
                 if(board[i][j] instanceof Hallway) ((Hallway) board[i][j]).visited = false;
             }
         }
     }
 
     public void printRoomOccupants() {
+        System.out.println("OBJECTS IN EACH ROOMS: ");
         for(Room r: rooms) {
             System.out.println("\n" + r.getName() + ":");
             for(Token t : r.getOccupants()) {

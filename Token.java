@@ -31,9 +31,14 @@ class TokenWeapon extends Token {
     }
 }
 
+/**
+ * The TokenChar is the player's piece on the board. The human player will control the token character by moving it around
+ * board.
+ */
 class TokenChar extends Token {
 
     public TokenChar(String name, int x, int y, Board board) { super(name, x, y, board); }
+
 
     /**
      * Find the range of movement given a dice roll of the player.
@@ -44,30 +49,9 @@ class TokenChar extends Token {
      * @param dice  -- The dice roll
      * @param visited   -- The range of movement of the player
      */
-//    public HashSet<Tile> getVisitableTiles(int row, int col, int dice, HashSet<Tile> visited) {
-//
-//        if (dice > -1) {
-//            // if(tiles[row][col] == null)
-//            if (tiles[row][col] instanceof Hallway) {
-//                visited.add(tiles[row][col]);
-//                ((Hallway) tiles[row][col]).visited = true;
-//            }
-//            else if (tiles[row][col] instanceof Door) visited.add(tiles[row][col].getCentreTile());
-//            //Move in all directions
-//
-//            if (!(tiles[row][col] instanceof Blocked || tiles[row][col] instanceof Room) && !visited.contains(tiles[row][col])) {
-//                if (row - 1 >= 0) getVisitableTiles(row - 1, col, dice - 1, visited);
-//                if (row + 1 < tiles.length) getVisitableTiles(row + 1, col, dice - 1, visited);
-//                if (col - 1 >= 0) getVisitableTiles(row, col - 1, dice - 1, visited);
-//                if (col + 1 < tiles[0].length) getVisitableTiles(row, col + 1, dice - 1, visited);
-//            }
-//        }
-//
-//        return visited;
-//    }
-
     public HashSet<Tile> getVisitableTiles(int row, int col, int dice, HashSet<Tile> visited) {
         if (dice > -1 && (board.board[row][col] instanceof Hallway || board.board[row][col] instanceof Door)) {  //Check that the player is able to move and that the current tile has
+
             visited.add(board.board[row][col]);
             if (board.board[row][col] instanceof Hallway) {
                 ((Hallway) board.board[row][col]).visited = true;
@@ -87,17 +71,27 @@ class TokenChar extends Token {
         return visited;
     }
 
-    public Tile BF(HashSet<Tile> visited, Tile tile, HashSet<Tile> movementRange) {
+    /**
+     * Return the fastest route from the player's visitable movement to the closest door of a given room.
+     * @param tile          -- The end of the route
+     * @param movementRange -- The player's movement range
+     * @return the edge of the player's movement closest to the door
+     */
+    public Tile BF(Tile tile, HashSet<Tile> movementRange) {
         Queue<Tile> queue = new LinkedList<>();
+        HashSet<Tile> visited = new HashSet<>();
+
         queue.add(tile);
         visited.add(tile);
 
         while (!queue.isEmpty()) {
             Tile currentTile = queue.remove();
+            if (movementRange.contains(currentTile) && !(currentTile instanceof Room)){
+                return currentTile;
+            }    //Found the closest tile of the player's movement that is not a room
 
-            if (movementRange.contains(currentTile)) return currentTile;    //Found the closest tile of the player's movement
 
-            if(currentTile instanceof Blocked) continue;  //Do not find the neighbours of an obstacle
+            if(currentTile instanceof Blocked || currentTile instanceof Room) continue;  //Do not find the neighbours of an obstacle
 
             Tile nextTile;
             //add to the queue if the left/right cells are valid
@@ -123,7 +117,7 @@ class TokenChar extends Token {
             }
         }
 
-        return null;
+        return null; //This usually means that a bug has occurred because the player should have a minimum movement range of 2.
     }
 
 

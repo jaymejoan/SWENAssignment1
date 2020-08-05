@@ -83,6 +83,7 @@ class Room extends Tile{
 
     public void addDoor(int k, Door d) {
         doors.put(k, d);
+        d.setIndex(k);
     }
 
     public void setName(String name) {
@@ -120,10 +121,13 @@ class Door extends Tile{
 
     Room centerTile;
 
+    int indexOfDoor = 0;
 
     public Door(int x, int y) {
         super(x,y);
     }
+
+    public void setIndex(int index){indexOfDoor = index;}
 
     public void setCenterTile(Room r) {
         this.centerTile = r;
@@ -134,7 +138,7 @@ class Door extends Tile{
     }
 
     public String toString() {
-        return "O";
+        return String.valueOf(indexOfDoor);
     }
 
 }

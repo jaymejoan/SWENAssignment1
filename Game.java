@@ -45,13 +45,19 @@ public class Game {
         // initialise Character cards and tokens
         for (int i = 0; i <= 5; i++) {
             charCards.put(cardNames[i].toLowerCase(), new CardChar(cardNames[i]));
-            charTokenMap.put(cardNames[i].toLowerCase(),new TokenChar(cardNames[i], yStart[i], xStart[i], board));
+            charTokenMap.put(cardNames[i].toLowerCase(),new TokenChar(cardNames[i], xStart[i], yStart[i], board));
         }
 
         // initialise Weapon cards and tokens
+        ArrayList<Room> r = new ArrayList<>(board.rooms);
+        Collections.shuffle(r);
         for (int i = 6; i <= 11; i++) {
             weaponCards.put(cardNames[i].toLowerCase(), new CardWeapon(cardNames[i]));
-            weaponTokenMap.put(cardNames[i].toLowerCase(),new TokenWeapon(cardNames[i], -1, -1, board));
+
+            TokenWeapon tw = new TokenWeapon(cardNames[i], r.get(i-6).getX(), r.get(i-6).getY(), board);
+            tw.room = r.get(i-6);
+            r.get(i-6).addOccupant(tw);
+            weaponTokenMap.put(cardNames[i].toLowerCase(),tw);
         }
 
         // initialise Room cards
@@ -191,7 +197,9 @@ public class Game {
         ArrayList<Room> reachableRooms = new ArrayList<>();
         ArrayList<Room> unreachableRooms = new ArrayList<>(board.rooms);
 
+        board.printRoomOccupants();
         board.drawBoard(p1.getToken().x,p1.getToken().y);
+        p1.displayCards();
 
         System.out.print("\nThese are the rooms you can reach: [");
         for (Room room : board.rooms) {
@@ -206,11 +214,15 @@ public class Game {
 
         //keep asking the user until there's a valid index
         while (true) {
+            int num;
             try {
+
                 if(!reachableRooms.isEmpty()) {
                     System.out.print("\nWhat room would you like to move to? [1 - " + reachableRooms.size() + "] or enter [0] for none of these: ");
-                    int num = scan.nextInt();
-                    if (num != 0) {
+                    num = scan.nextInt();
+                    if (num < 0 || num > reachableRooms.size()) throw new Exception();
+
+                    if (num != 0 ) {
                         p1.move(reachableRooms.get(num - 1));
                         return reachableRooms.get(num - 1);
                     }
@@ -224,33 +236,48 @@ public class Game {
                     System.out.print(room.getName() + ", ");
                 }
                 System.out.print("] enter [1 - " + unreachableRooms.size() + "]:");
-                Room moveTo = unreachableRooms.get(scan.nextInt()-1);
-                System.out.println("you choose to move to " + moveTo.getName());
-                Tile tile =  p1.getToken().BF(new HashSet<>(),closetDoor(moveTo,p1.getToken()),range);
+                num = scan.nextInt();
+                if (num < 0 || num > unreachableRooms.size()) throw new Exception();
+
+                Room moveTo = unreachableRooms.get(num-1);
+                System.out.println("you choose to move towards " + moveTo.getName());
+                System.out.println("moveto: " + moveTo + " position: " + p1.getToken().y + " " + p1.getToken().x);
+                Door door = closestDoor(moveTo,p1.getToken());
+                System.out.println("Door: " + door);
+                Tile tile =  p1.getToken().BF(door,range);
                 System.out.println("Tiles: " + tile.getX() + "  " + tile.getY());
                 p1.move(tile);
                 return tile;
             } catch (Exception e) {
-                e.printStackTrace();
                 System.out.println("Invalid input please enter a valid index.\n");
+                if(e instanceof InputMismatchException) scan.next();
             }
         }
     }
 
-    public Door closetDoor(Room room , TokenChar tokenChar){
-        if(room.getDoors().size() <= 1){
+
+    /**
+     * Return the closest door based on the euclidean distance using the
+     * player's position and each of the door's position of a room.
+     * @param room          -- The given room,
+     * @param tokenChar     -- The current player.
+     * @return the closest door.
+     */
+    public Door closestDoor(Room room , TokenChar tokenChar){
+
+        if(room.getDoors().size() <= 1){    //return if the room has only one door.
             return room.getDoors().get(1);
         } else {
             double shortestLength = Double.MAX_VALUE;
-            Door closetDoor = null;
-            for (Door door : room.getDoors().values()){
-                double newLength = Math.sqrt(door.getX() - tokenChar.x)*(door.getX() - tokenChar.x) + (door.getY() - tokenChar.y)*(door.getY() - tokenChar.y);
+            Door closestDoor = null;
+            for (Door door : room.getDoors().values()){ //loop through each door, and find the closest one.
+                double newLength = Math.sqrt((door.getX() - tokenChar.x)*(door.getX() - tokenChar.x) + (door.getY() - tokenChar.y)*(door.getY() - tokenChar.y));
                 if( newLength < shortestLength ){
                     shortestLength = newLength;
-                    closetDoor = door;
+                    closestDoor = door;
                 }
             }
-            return closetDoor;
+            return closestDoor;
         }
 
     }
@@ -270,7 +297,7 @@ public class Game {
             Player p1 = players.get(currentPlayer);
             TokenChar tokenChar = p1.getToken();
             Door door = null;
-            Room currentRoom = p1.getToken().room;
+
 
             // game over state
             if (eliminatedPlayers == players.size()) {
@@ -286,6 +313,8 @@ public class Game {
             }
 
             System.out.println("\nIt's " + p1.getName() + "'s turn... you rolled " + dice);
+            Room currentRoom = p1.getToken().room;
+            System.out.println(currentRoom +" "+ p1.getToken().y + " " + p1.getToken().x);
 
             // asks the user which door to exit
             if (currentRoom != null) {
@@ -294,6 +323,7 @@ public class Game {
                         System.out.print("\nYou are in: " + currentRoom.getName());
                         System.out.print("\nWhat door do you wish to exit? [1 - " + currentRoom.getDoors().size() + "] : " + currentRoom.getDoors().toString());
                         door = currentRoom.getDoors().get(scan.nextInt());  //TODO: check this doesnt result in error for invalid inputs
+                        p1.leaveRoom(door);
 //                    scan.close();
                         break;
                     } catch (Exception e) {
@@ -313,12 +343,13 @@ public class Game {
             }
 
             // moves the player towards/into a room
-            HashSet<Tile> tiles = tokenChar.getVisitableTiles(xPos, yPos, dice, new HashSet<Tile>());
+            HashSet<Tile> tiles = tokenChar.getVisitableTiles(yPos, xPos, dice, new HashSet<Tile>());
             Tile moveToTile = getReachableRoom(tiles, scan, p1);
             board.drawBoard(p1.getToken().x,p1.getToken().y);
+
             boolean onlyAccuse = false;
             if(moveToTile instanceof Room) {
-                System.out.println(p1 + " is now in : " + p1.getCurrentRoom().getName());
+
             } else {
                 onlyAccuse = true;
             }
@@ -337,6 +368,7 @@ public class Game {
                 String ans = scan.next();
                 if (ans.equalsIgnoreCase("suggest")) {
                     runSuggest(scan, p1, p1.getCurrentRoom());
+
                     break;
                 } else if (ans.equalsIgnoreCase("accuse")) {
                     runAccuse(scan, p1);
@@ -347,7 +379,7 @@ public class Game {
             }
 
             //the out put of this turn
-            board.printRoomOccupants();
+
         }
 
 
@@ -430,6 +462,16 @@ public class Game {
         //add suggested tokens to the room it's been suggest in
         TokenChar tokenChar = charTokenMap.get(charInput);
         TokenWeapon tokenWeapon = weaponTokenMap.get(weaponInput);
+
+        //remove tokens from the rooms they used to be in
+        if(tokenChar.room != null){
+            tokenChar.room.removeOccupant(tokenChar);
+        }
+        if(tokenWeapon.room != null){
+            tokenWeapon.room.removeOccupant(tokenWeapon);
+        }
+
+
         tokenChar.room = currentRoom;
         tokenWeapon.room = currentRoom;
         currentRoom.addOccupant(tokenChar);
@@ -447,6 +489,17 @@ public class Game {
                 if (cardNotFound == players.size() - 1) {
                     System.out.println("Interesting... No other players have these cards...");
                     // TODO: 'an accusation can follow an unrefuted suggestion' (from marking schedule) -- if no card is refuted the player can then accuse?
+                    while (true) {
+                        System.out.println("Do you want to accuse?[Y/N] : ");
+                        String ans = scan.next();
+                        if (ans.equalsIgnoreCase("y")) {
+                            runAccuse(scan, p1);
+                            break;
+                        } else if (ans.equalsIgnoreCase("n")) {
+                            break;
+                        }
+
+                    }
                     currentPlayer++;
                     break;
                 }
