@@ -2,6 +2,10 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Queue;
 
+
+/**
+ * Tokens are a physical representation of how a scenario is played out when a player suggests the murder circumstances.
+ */
 public class Token {
     public String name;
     int x, y;
@@ -9,7 +13,7 @@ public class Token {
     Tile[][] tiles;
     Room room;
 
-    public Token(String name, int x, int y, Board board){
+    public Token(String name, int x, int y, Board board) {
         this.name = name;
         this.x = x;
         this.y = y;
@@ -17,14 +21,17 @@ public class Token {
         this.tiles = board.board;
     }
 
-    public void move(int x, int y, Room room){
+    public void move(int x, int y, Room room) {
         this.x = x;
         this.y = y;
         this.room = room;
     }
 }
 
-
+/**
+ * TokenWeapon represents the physical weapons on the board.
+ * When mentioned in a suggestion, the token is moved to the suggested room.
+ */
 class TokenWeapon extends Token {
     public TokenWeapon(String name, int x, int y, Board board) {
         super(name, x, y, board);
@@ -32,32 +39,36 @@ class TokenWeapon extends Token {
 }
 
 /**
- * The TokenChar is the player's piece on the board. The human player will control the token character by moving it around
- * board.
+ * The TokenChar is the player's piece on the board.
+ * The human player will control the token character by moving it around the board.
  */
 class TokenChar extends Token {
 
-    public TokenChar(String name, int x, int y, Board board) { super(name, x, y, board); }
+    public TokenChar(String name, int x, int y, Board board) {
+        super(name, x, y, board);
+    }
 
 
     /**
      * Find the range of movement given a dice roll of the player.
      * Returns the rooms that can be visited if it is within the range of movement.
      *
-     * @param row   -- The y coordinates
-     * @param col   -- The x coordinates
-     * @param dice  -- The dice roll
-     * @param visited   -- The range of movement of the player
+     * @param row     -- The y coordinates
+     * @param col     -- The x coordinates
+     * @param dice    -- The dice roll
+     * @param visited -- The range of movement of the player
      */
     public HashSet<Tile> getVisitableTiles(int row, int col, int dice, HashSet<Tile> visited) {
-        if (dice > -1 && (board.board[row][col] instanceof Hallway || board.board[row][col] instanceof Door)) {  //Check that the player is able to move and that the current tile has
+
+        //Check that the player is able to move and that the current tile has
+        if (dice > -1 && (board.board[row][col] instanceof Hallway || board.board[row][col] instanceof Door)) {
 
             visited.add(board.board[row][col]);
             if (board.board[row][col] instanceof Hallway) {
                 ((Hallway) board.board[row][col]).visited = true;
             }//not been visited
 
-            if(board.board[row][col] instanceof Door && dice > 0) {
+            if (board.board[row][col] instanceof Door && dice > 0) {
                 visited.add((Room) ((Door) board.board[row][col]).getCenterTile());
 
             }
@@ -73,6 +84,7 @@ class TokenChar extends Token {
 
     /**
      * Return the fastest route from the player's visitable movement to the closest door of a given room.
+     *
      * @param tile          -- The end of the route
      * @param movementRange -- The player's movement range
      * @return the edge of the player's movement closest to the door
@@ -86,19 +98,21 @@ class TokenChar extends Token {
 
         while (!queue.isEmpty()) {
             Tile currentTile = queue.remove();
-            if (movementRange.contains(currentTile) && !(currentTile instanceof Room)){
+            if (movementRange.contains(currentTile) && !(currentTile instanceof Room)) {
                 return currentTile;
             }    //Found the closest tile of the player's movement that is not a room
 
 
-            if(currentTile instanceof Blocked || currentTile instanceof Room) continue;  //Do not find the neighbours of an obstacle
+            if (currentTile instanceof Blocked || currentTile instanceof Room)
+                continue;  //Do not find the neighbours of an obstacle
 
             Tile nextTile;
+
             //add to the queue if the left/right cells are valid
             for (int i = -1; i < 2; i += 2) {
-                if (currentTile.getX() + i >= 0 && currentTile.getX() + i < board.board[0].length ) {
+                if (currentTile.getX() + i >= 0 && currentTile.getX() + i < board.board[0].length) {
                     nextTile = board.board[currentTile.getY()][currentTile.getX() + i];
-                    if(!visited.contains(nextTile)) {
+                    if (!visited.contains(nextTile)) {
                         queue.add(nextTile);
                         visited.add(nextTile);
                     }
@@ -109,7 +123,7 @@ class TokenChar extends Token {
             for (int i = -1; i < 2; i += 2) {
                 if (currentTile.getY() + i >= 0 && currentTile.getY() + i < board.board.length) {
                     nextTile = board.board[currentTile.getY() + i][currentTile.getX()];
-                    if(!visited.contains(nextTile)) {
+                    if (!visited.contains(nextTile)) {
                         queue.add(nextTile);
                         visited.add(nextTile);
                     }

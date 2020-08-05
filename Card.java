@@ -11,10 +11,20 @@ public class Card {
         nameOfCard = name;
     }
 
+    /**
+     * Gets the name of this Card.
+     *
+     * @return String -- name of Card.
+     */
     public String getNameOfCard() {
         return nameOfCard;
     }
 
+    /**
+     * Gets the type (character, weapon, room) of this Card.
+     *
+     * @return String -- type of Card.
+     */
     public String getType() {
         return "type";
     }
