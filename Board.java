@@ -2,6 +2,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 
+/**
+ * The Board represents the game's play zone. It consists of tiles that are 25 tall and 24 wide.
+ */
 public class Board {
     ArrayList<Integer> boardSetUp = new ArrayList<Integer>(
             Arrays.asList(1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -214,10 +217,5 @@ public class Board {
                 System.out.println("    - " + t.name);
             }
         }
-    }
-
-    // TODO: can we delete this ?
-    public static void main(String... args) {
-        Board b = new Board();
     }
 }

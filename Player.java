@@ -1,5 +1,8 @@
 import java.util.*;
 
+/**
+ * Player represents the user player and their functions in playing the game
+ */
 public class Player {
 
     //Player Attributes
@@ -29,25 +32,6 @@ public class Player {
         for (Card card : cards) {
             knownCards.get(card.getType()).add(card);
         }
-
-
-        //@todo link this player obj back to card
-//        tokenChar = new TokenChar(name,0,0); //number of player
-        //@todo need to know where the player is going to start might need to add (x,y) in constructor
-        //@todo add Game object
-    }
-
-    /**
-     * CAN DELETE ?
-     *
-     * @param aGameOver
-     * @return
-     */
-    public boolean setGameOver(boolean aGameOver) {
-        boolean wasSet = false;
-        gameOver = aGameOver;
-        wasSet = true;
-        return wasSet;
     }
 
     /**
