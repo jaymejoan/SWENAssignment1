@@ -184,7 +184,7 @@ public class Board {
      *          NOTE: If you want to make the player not draw, just put out of bounds values.
      */
     public void drawBoard(int x, int y) {
-        System.out.print("     ABCDEFGHIJKLMNOPQRSTUVWX");
+        System.out.print("\n     ABCDEFGHIJKLMNOPQRSTUVWX");
         String gap = " ";
         for (int i = 0; i < 25; i++) {
             if (i == 10) {
@@ -204,6 +204,8 @@ public class Board {
                 if (board[i][j] instanceof Hallway) ((Hallway) board[i][j]).visited = false;
             }
         }
+
+        System.out.println("\n");
     }
 
     /**

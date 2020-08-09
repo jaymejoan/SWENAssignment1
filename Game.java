@@ -224,7 +224,7 @@ public class Game {
                 System.out.println("You chose to move towards the " + moveTo.getName() + ".");
                 System.out.println("moveto: " + moveTo + " position: " + p1.getToken().y + " " + p1.getToken().x);
 
-                Door door = closestDoor(moveTo, p1.getToken());
+                Door door = getClosestDoor(moveTo, p1.getToken());
                 System.out.println("Door: " + door);
 
                 Tile tile = p1.getToken().unreachableMove(door, range);
@@ -248,7 +248,7 @@ public class Game {
      * @param tokenChar -- The current player.
      * @return the closest door.
      */
-    public Door closestDoor(Room room, TokenChar tokenChar) {
+    public Door getClosestDoor(Room room, TokenChar tokenChar) {
 
         if (room.getDoors().size() <= 1) {              //return if the room only has one door
             return room.getDoors().get(1);
