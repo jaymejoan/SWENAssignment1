@@ -3,8 +3,6 @@ import java.util.HashMap;
 
 /**
  * A tile represents a position on the grid board, where tokens can exist on.
- * <p>
- * This should probably be a functional abstract class.
  */
 public class Tile {
     private int x, y;

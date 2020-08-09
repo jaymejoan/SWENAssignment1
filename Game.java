@@ -148,20 +148,6 @@ public class Game {
     }
 
     /**
-     * Resets the game to its initial starting state.
-     * COULD DELETE
-     */
-    public void resetGame() {
-        charCards.clear();
-        weaponCards.clear();
-        roomCards.clear();
-        winningDeck.clear();
-        fullDeck.clear();
-        players.clear();
-        gameWon = false;
-    }
-
-    /**
      * Sets gameWon to true if this Player has won the game.
      *
      * @return boolean -- true if Player has won game. Otherwise, false.
@@ -241,7 +227,7 @@ public class Game {
                 Door door = closestDoor(moveTo, p1.getToken());
                 System.out.println("Door: " + door);
 
-                Tile tile = p1.getToken().BF(door, range);
+                Tile tile = p1.getToken().unreachableMove(door, range);
                 System.out.println("Tiles: " + tile.getX() + "  " + tile.getY());
                 p1.move(tile);
 
@@ -344,7 +330,8 @@ public class Game {
             Tile moveToTile = getReachableRoom(tiles, scan, p1);
             board.drawBoard(p1.getToken().x, p1.getToken().y);
 
-            // TODO: what does this do ?
+            // only accuse is a condition that checks if the player can either make a choice
+            // to suggest or accuse, or only accuse (not in a room)
             boolean onlyAccuse = false;
             if (moveToTile instanceof Room) {
 
@@ -357,22 +344,33 @@ public class Game {
 
             // executes suggest or accuse
             while (true) {
-                //TODO: if player is not in a room (ie. in hall), skip over ... can they still accuse?
                 if (onlyAccuse) {
-                    currentPlayer++;
-                    break;
+                    System.out.println("\n" + p1.getName() + " do you want to accuse? [y/n]");
+                    String ans = scan.next();
+                    if (ans.equalsIgnoreCase("y")) {
+                        runAccuse(scan, p1);
+                        break;
+                    }
+                    else if (ans.equalsIgnoreCase("n")) {
+                        currentPlayer++;
+                        break;
+                    }
+                    else {
+                        System.out.println("Invalid input. Please type in either 'y' or 'n'.");
+                    }
                 }
-
-                System.out.println("\n" + p1.getName() + " do you want to 'suggest' or 'accuse' ? [suggest / accuse]: ");
-                String ans = scan.next();
-                if (ans.equalsIgnoreCase("suggest")) {
-                    runSuggest(scan, p1, p1.getCurrentRoom());
-                    break;
-                } else if (ans.equalsIgnoreCase("accuse")) {
-                    runAccuse(scan, p1);
-                    break;
-                } else {
-                    System.out.println("Invalid input. Please type in either 'suggest' or 'accuse'.");
+                else {
+                    System.out.println("\n" + p1.getName() + " do you want to 'suggest' or 'accuse' ? [suggest / accuse]: ");
+                    String ans = scan.next();
+                    if (ans.equalsIgnoreCase("suggest")) {
+                        runSuggest(scan, p1, p1.getCurrentRoom());
+                        break;
+                    } else if (ans.equalsIgnoreCase("accuse")) {
+                        runAccuse(scan, p1);
+                        break;
+                    } else {
+                        System.out.println("Invalid input. Please type in either 'suggest' or 'accuse'.");
+                    }
                 }
             }
         }
@@ -461,7 +459,7 @@ public class Game {
                 // case when user suggests NOT accuses all three winning cards
                 if (cardNotFound == players.size() - 1) {
                     System.out.println("Interesting... No other players have these cards...");
-                    // TODO: 'an accusation can follow an unrefuted suggestion' (from marking schedule) -- if no card is refuted the player can then accuse?
+                    // Allows player to make accusation straight after an unrefuted suggestion
                     while (true) {
                         System.out.println("Do you want to accuse?[Y/N] : ");
                         String ans = scan.next();

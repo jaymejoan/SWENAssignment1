@@ -10,7 +10,6 @@ public class Token {
     public String name;
     int x, y;
     Board board;
-    Tile[][] tiles;
     Room room;
 
     public Token(String name, int x, int y, Board board) {
@@ -18,7 +17,6 @@ public class Token {
         this.x = x;
         this.y = y;
         this.board = board;
-        this.tiles = board.board;
     }
 
     public void move(int x, int y, Room room) {
@@ -89,7 +87,7 @@ class TokenChar extends Token {
      * @param movementRange -- The player's movement range
      * @return the edge of the player's movement closest to the door
      */
-    public Tile BF(Tile tile, HashSet<Tile> movementRange) {
+    public Tile unreachableMove(Tile tile, HashSet<Tile> movementRange) {
         Queue<Tile> queue = new LinkedList<>();
         HashSet<Tile> visited = new HashSet<>();
 
