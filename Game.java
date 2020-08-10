@@ -14,7 +14,7 @@ public class Game {
     private final String[] playerNames = new String[]{"Miss Scarlett (P1)", "Mr. Green (P2)", "Colonel Mustard (P3)", "Professor Plum (P4)", "Mrs. Peacock (P5)", "Mrs. White (P6)"};
     private final ArrayList<Card> winningDeck = new ArrayList<>();                    // deck containing the three winning cards
     private boolean gameWon = false;
-    private int currentPlayer = 0, nextPlayer, totalPlayers, eliminatedPlayers = 0;
+    private int currentPlayer = 0, nextPlayer, eliminatedPlayers = 0;
     Board board;
 
     HashMap<String, CardChar> charCards = new HashMap<>();
@@ -28,14 +28,13 @@ public class Game {
     ArrayList<Player> players = new ArrayList<>();
 
     /**
-     * Players, Cards, Tiles and Tokens are constructed here
+     * Players, Cards, Tiles, Tokens and Board are constructed here
      * (as they only need to be initialised once).
      *
      * @param numOfPlayers -- number of players in this game.
      */
     public Game(int numOfPlayers) {
         board = new Board();
-        totalPlayers = numOfPlayers;
         int[] xStart = {9, 14, 23, 23, 7, 0};
         int[] yStart = {0, 0, 6, 19, 24, 17};
 
@@ -221,14 +220,12 @@ public class Game {
                 if (num < 0 || num > unreachableRooms.size()) throw new Exception();
 
                 Room moveTo = unreachableRooms.get(num - 1);
-                System.out.println("You chose to move towards the " + moveTo.getName() + ".");
-                System.out.println("moveto: " + moveTo + " position: " + p1.getToken().y + " " + p1.getToken().x);
+                System.out.println("You chose to move towards the " + moveTo.getName() + ". You are currently in the Hallway.");
 
                 Door door = getClosestDoor(moveTo, p1.getToken());
-                System.out.println("Door: " + door);
+                System.out.println("The closest door to the selected room: " + door);
 
                 Tile tile = p1.getToken().unreachableMove(door, range);
-                System.out.println("Tiles: " + tile.getX() + "  " + tile.getY());
                 p1.move(tile);
 
                 return tile;
@@ -299,33 +296,16 @@ public class Game {
 
             System.out.println("\nIt's " + p1.getName() + "'s turn... you rolled " + dice);
             Room currentRoom = p1.getToken().room;
-            System.out.println(currentRoom + " " + p1.getToken().y + " " + p1.getToken().x);
 
             // asks the user which door to exit
             if (currentRoom != null) {
-                while (true) {
-                    try {
-                        System.out.print("\nYou are in: " + currentRoom.getName());
-                        System.out.print("\nWhat door do you wish to exit? [1 - " + currentRoom.getDoors().size() + "] : " + currentRoom.getDoors().toString());
-                        door = currentRoom.getDoors().get(scan.nextInt());  //TODO: check this doesnt result in error for invalid inputs
-                        p1.leaveRoom(door);
-                        break;
-                    } catch (Exception e) {
-                        System.out.println("Invalid input please enter a valid index.\n");
-                    }
-                }
+                door = getExitDoor(currentRoom, scan, p1);
             }
 
             // co-ordinates of this player's character token and the door
-            int xPos = tokenChar.x;
-            int yPos = tokenChar.y;
+            int yPos = door == null ? tokenChar.y : door.getY();
+            int xPos = door == null ? tokenChar.x : door.getX();
 
-            if (door != null) {
-                xPos = door.getX();
-                yPos = door.getY();
-            }
-
-            // moves the player towards/into a room
             HashSet<Tile> tiles = tokenChar.getVisitableTiles(yPos, xPos, dice, new HashSet<Tile>());
             Tile moveToTile = getReachableRoom(tiles, scan, p1);
             board.drawBoard(p1.getToken().x, p1.getToken().y);
@@ -333,14 +313,11 @@ public class Game {
             // only accuse is a condition that checks if the player can either make a choice
             // to suggest or accuse, or only accuse (not in a room)
             boolean onlyAccuse = false;
-            if (moveToTile instanceof Room) {
-
-            } else {
+            if (!(moveToTile instanceof Room)) {
                 onlyAccuse = true;
             }
 
             p1.displayCards();
-
 
             // executes suggest or accuse
             while (true) {
@@ -372,6 +349,30 @@ public class Game {
                         System.out.println("Invalid input. Please type in either 'suggest' or 'accuse'.");
                     }
                 }
+            }
+        }
+    }
+
+    /**
+     * Gets the door the user wants to exit from.
+     *
+     * @param currentRoom -- the room this Player is in.
+     * @param scan -- the current scanner in use.
+     * @param p1 -- the current player.
+     * @return Door --  the Door the user chose to exit.
+     */
+    public Door getExitDoor(Room currentRoom, Scanner scan, Player p1){
+        Door door = null;
+
+        while (true) {
+            try {
+                System.out.print("\nYou are in: " + currentRoom.getName());
+                System.out.print("\nWhat door do you wish to exit? [1 - " + currentRoom.getDoors().size() + "] : ");
+                door = currentRoom.getDoors().get(scan.nextInt());
+                p1.leaveRoom(door);
+                return door;
+            } catch (Exception e) {
+                System.out.println("Invalid input please enter a valid index.\n");
             }
         }
     }

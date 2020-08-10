@@ -212,7 +212,7 @@ public class Board {
      * Prints the number of occupants (tokens) inside each room.
      */
     public void printRoomOccupants() {
-        System.out.println("OBJECTS IN EACH ROOM: ");
+        System.out.println("\nOBJECTS IN EACH ROOM: ");
         for (Room r : rooms) {
             System.out.println("\n" + r.getName() + ":");
             for (Token t : r.getOccupants()) {

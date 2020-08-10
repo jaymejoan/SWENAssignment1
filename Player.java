@@ -226,7 +226,6 @@ public class Player {
         }
         tokenChar.x = tile.getX();
         tokenChar.y = tile.getY();
-        System.out.println("current Position: x: " + tokenChar.x + "  y: " + tokenChar.y);
     }
 
     /**
