@@ -1,3 +1,4 @@
+import java.awt.*;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -24,6 +25,8 @@ public class Token {
         this.y = y;
         this.room = room;
     }
+
+    public void tokenGUI(Graphics2D g, int x, int y) {}
 }
 
 /**
@@ -42,8 +45,29 @@ class TokenWeapon extends Token {
  */
 class TokenChar extends Token {
 
+    Color c;
+
     public TokenChar(String name, int x, int y, Board board) {
         super(name, x, y, board);
+        switch(name) {
+            case "Miss Scarlett":
+                c = new Color(150,0,0);
+                break;
+            case "Mr. Green":
+                c = new Color(0, 150, 0);
+                break;
+            case "Colonel Mustard":
+                c = new Color(149, 150, 36);
+                break;
+            case "Professor Plum":
+                c = new Color(62, 9, 100);
+                break;
+            case "Mrs. Peacock":
+                c = new Color(0, 1, 90);
+                break;
+            case "Mrs. White":
+                c = new Color(255, 255,255);
+        }
     }
 
 
@@ -132,5 +156,12 @@ class TokenChar extends Token {
         return null; //This usually means that a bug has occurred because the player should have a minimum movement range of 2.
     }
 
+    public void tokenGUI(Graphics2D g, int x, int y) {
+        g.setColor(Color.black);
+        g.fillOval(10 + (x * 22), 10 + (y * 22), 20, 20);
+        g.setColor(this.c);
+        g.fillOval(10 + (x * 22), 10 + (y * 22), 18, 18);
+
+    }
 
 }

@@ -1,3 +1,4 @@
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -76,6 +77,12 @@ public class Tile {
     public String toString() {
         return null;
     }
+
+    /**
+     * Draws tile on GUI
+     *
+     */
+    public void tileGUI(Graphics2D g, int x, int y) {}
 }
 
 /**
@@ -90,6 +97,11 @@ class Blocked extends Tile {
 
     public String toString() {
         return "#";
+    }
+
+    public void tileGUI(Graphics2D g, int x, int y) {
+        g.setColor(Color.darkGray);
+        g.fillRect(10 + (x * 22), 10 + (y * 22), 20, 20);
     }
 }
 
@@ -107,6 +119,12 @@ class Hallway extends Tile {
     public String toString() {
         return !visited ? "░" : "X";
     }
+
+    public void tileGUI(Graphics2D g, int x, int y) {
+        g.setColor(Color.yellow);
+        if (visited) g.setColor(Color.green);
+        g.fillRect(10 + (x * 22), 10 + (y * 22), 20, 20);
+    }
 }
 
 /**
@@ -120,6 +138,7 @@ class Room extends Tile {
     private String name;
     private ArrayList<Token> Occupants; // Integer Placeholder
     private HashMap<Integer, Door> doors = new HashMap<>();
+    private boolean centreTile = false;
 
     public Room(int x, int y) {
         super(x, y);
@@ -159,6 +178,16 @@ class Room extends Tile {
     public String toString() {
         return "█";
     }
+
+    public void setCentreTile() {
+        this.centreTile = true;
+    }
+
+    public void tileGUI(Graphics2D g, int x, int y) {
+        g.setColor(Color.lightGray);
+        if (centreTile) g.setColor(Color.gray);
+        g.fillRect(10 + (x * 22), 10 + (y * 22), 20, 20);
+    }
 }
 
 /**
@@ -189,6 +218,11 @@ class Door extends Tile {
 
     public String toString() {
         return String.valueOf(indexOfDoor);
+    }
+
+    public void tileGUI(Graphics2D g, int x, int y) {
+        g.setColor(Color.red);
+        g.fillRect(10 + (x * 22), 10 + (y * 22), 20, 20);
     }
 
 }

@@ -11,7 +11,7 @@ public class Game {
             "Kitchen", "Ballroom", "Conservatory", "Dining Room", "Billiard Room", "Library", "Lounge", "Hall", "Study"};
 
 
-    private final String[] playerNames = new String[]{"Miss Scarlett (P1)", "Mr. Green (P2)", "Colonel Mustard (P3)", "Professor Plum (P4)", "Mrs. Peacock (P5)", "Mrs. White (P6)"};
+    //    private final String[] playerNames = new String[]{"Miss Scarlett (P1)", "Mr. Green (P2)", "Colonel Mustard (P3)", "Professor Plum (P4)", "Mrs. Peacock (P5)", "Mrs. White (P6)"};
     private final ArrayList<Card> winningDeck = new ArrayList<>();                    // deck containing the three winning cards
     private boolean gameWon = false;
     private int currentPlayer = 0, nextPlayer, eliminatedPlayers = 0;
@@ -27,22 +27,29 @@ public class Game {
     ArrayList<Card> fullDeck = new ArrayList<>();
     ArrayList<Player> players = new ArrayList<>();
 
+    CluedoGUI cluedoGUI;
+
     /**
      * Players, Cards, Tiles, Tokens and Board are constructed here
      * (as they only need to be initialised once).
-     *
-     * @param numOfPlayers -- number of players in this game.
      */
-    public Game(int numOfPlayers) {
+    public Game() {
         board = new Board();
         int[] xStart = {9, 14, 23, 23, 7, 0};
         int[] yStart = {0, 0, 6, 19, 24, 17};
+
+        cluedoGUI = new CluedoGUI(this.board, this);
+
+        int numOfPlayers = cluedoGUI.getNumOfPlayers();
 
         // initialise Character cards and tokens
         for (int i = 0; i <= 5; i++) {
             charCards.put(cardNames[i].toLowerCase(), new CardChar(cardNames[i]));
             charTokenMap.put(cardNames[i].toLowerCase(), new TokenChar(cardNames[i], xStart[i], yStart[i], board));
         }
+
+        // Give board tokenChars for drawing on GUI
+        board.giveTokenChars(charTokenMap);
 
         // initialise Weapon cards and tokens
         ArrayList<Room> r = new ArrayList<>(board.rooms);
@@ -68,11 +75,16 @@ public class Game {
         fullDeck.addAll(roomCards.values());
 
         ArrayList<HashSet<Card>> hand = dealCards(numOfPlayers);        // List of each player's hand of cards
+        ArrayList<String> playerNames = cluedoGUI.getSelectedCharacters();
+
+        System.out.println(playerNames);
 
         // initialise players
-        for (int i = 0; i < numOfPlayers; i++) {
-            players.add(new Player(playerNames[i], 0, 0, hand.get(i), this, charTokenMap.get(cardNames[i].toLowerCase())));     //TODO: double check fields for Board... what should x and y be ? do you want to create a list of starting positions and iterate through?
-            System.out.println("player" + i + " deck: " + hand.get(i).toString() + " tokenChar: " + cardNames[i]);  // testing only
+        if(!playerNames.isEmpty()) {
+            for (int i = 0; i < numOfPlayers; i++) {
+                players.add(new Player(playerNames.get(i), 0, 0, hand.get(i), this, charTokenMap.get(playerNames.get(i).toLowerCase())));
+                System.out.println("player" + i + " deck: " + hand.get(i).toString() + " tokenChar: " + playerNames.get(i));  // testing only
+            }
         }
 
         // add winning cards back into original deck (needed for rest of gameplay)
@@ -276,6 +288,8 @@ public class Game {
             currentPlayer = currentPlayer >= players.size() ? 0 : currentPlayer;
             nextPlayer = currentPlayer;
 
+//            cluedoGUI.bottomLeft.revalidate();
+
             int dice = rollDice();
             Player p1 = players.get(currentPlayer);
             TokenChar tokenChar = p1.getToken();
@@ -307,13 +321,36 @@ public class Game {
             int xPos = door == null ? tokenChar.x : door.getX();
 
             HashSet<Tile> tiles = tokenChar.getVisitableTiles(yPos, xPos, dice, new HashSet<Tile>());
-            Tile moveToTile = getReachableRoom(tiles, scan, p1);
-            board.drawBoard(p1.getToken().x, p1.getToken().y);
+
+            for(Tile t : tiles) {
+                if (t instanceof Hallway)
+                    ((Hallway)t).visited = true;
+            }
+
+            cluedoGUI.drawBoard.repaint();
+
+            while (true) {
+                System.out.print("");
+                if(cluedoGUI.clickX <= 23 && cluedoGUI.clickY <=  24 && ((Hallway)board.board[cluedoGUI.clickY][cluedoGUI.clickX]).visited){
+                    tokenChar.x = cluedoGUI.clickX;
+                    tokenChar.y = cluedoGUI.clickY;
+                    break;
+                }
+            }
+
+            for (Tile t : tiles) {
+                if (t instanceof Hallway)
+                    ((Hallway)t).visited = false;
+            }
+
+            cluedoGUI.drawBoard.repaint();
+
+
 
             // only accuse is a condition that checks if the player can either make a choice
             // to suggest or accuse, or only accuse (not in a room)
             boolean onlyAccuse = false;
-            if (!(moveToTile instanceof Room)) {
+            if (!((board.board[tokenChar.x][tokenChar.y] instanceof Room))) {
                 onlyAccuse = true;
             }
 
@@ -327,16 +364,13 @@ public class Game {
                     if (ans.equalsIgnoreCase("y")) {
                         runAccuse(scan, p1);
                         break;
-                    }
-                    else if (ans.equalsIgnoreCase("n")) {
+                    } else if (ans.equalsIgnoreCase("n")) {
                         currentPlayer++;
                         break;
-                    }
-                    else {
+                    } else {
                         System.out.println("Invalid input. Please type in either 'y' or 'n'.");
                     }
-                }
-                else {
+                } else {
                     System.out.println("\n" + p1.getName() + " do you want to 'suggest' or 'accuse' ? [suggest / accuse]: ");
                     String ans = scan.next();
                     if (ans.equalsIgnoreCase("suggest")) {
@@ -357,11 +391,11 @@ public class Game {
      * Gets the door the user wants to exit from.
      *
      * @param currentRoom -- the room this Player is in.
-     * @param scan -- the current scanner in use.
-     * @param p1 -- the current player.
+     * @param scan        -- the current scanner in use.
+     * @param p1          -- the current player.
      * @return Door --  the Door the user chose to exit.
      */
-    public Door getExitDoor(Room currentRoom, Scanner scan, Player p1){
+    public Door getExitDoor(Room currentRoom, Scanner scan, Player p1) {
         Door door = null;
 
         while (true) {
@@ -538,6 +572,15 @@ public class Game {
     }
 
     /**
+     * Returns the current (active) player in the game.
+     *
+     * @return int -- the current player.
+     */
+    public int getCurrentPlayer() {
+        return currentPlayer;
+    }
+
+    /**
      * Returns the winning deck in this game.
      *
      * @return ArrayList<Card> -- the winning deck.
@@ -548,24 +591,28 @@ public class Game {
 
 
     public static void main(String... args) {
-        int num;
-
+//        int num;
+//
         // get valid number of players
-        while (true) {
-            try {
-                Scanner scan = new Scanner(System.in);
-                System.out.println("Select number of players in the game (3-6) : ");
-                num = scan.nextInt();
+//        while (true) {
+//            try {
+//                Scanner scan = new Scanner(System.in);
+//                System.out.println("Select number of players in the game (3-6) : ");
+//                num = scan.nextInt();
+//
+//                if (num < 3 || num > 6) throw new Exception();
+//                // do we need to close scanners ??
+//                break;
+//            } catch (Exception e) {
+//                System.out.println("Invalid input. Please enter a number between 3-6.\n");
+//            }
+//        }
+//
+//        CluedoGUI.startMenu();
+//
+//        new Game(num).runGame();
 
-                if (num < 3 || num > 6) throw new Exception();
-                // do we need to close scanners ??
-                break;
-            } catch (Exception e) {
-                System.out.println("Invalid input. Please enter a number between 3-6.\n");
-            }
-        }
-
-        new Game(num).runGame();
+        new Game().runGame();
 
         System.out.println("Game ended successfully... see you next time!");
     }

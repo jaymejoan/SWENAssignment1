@@ -1,5 +1,7 @@
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 
 /**
@@ -35,6 +37,8 @@ public class Board {
     );
     HashSet<Room> rooms = new HashSet<>();
     Tile[][] board = new Tile[25][24]; //0-24[25] by 0-23[24]
+
+    public HashMap<String, TokenChar> tokenChars = null;
 
     public Board() {
         // Setting board up as integer for tile type, (integer so it's shorthanded)
@@ -162,6 +166,10 @@ public class Board {
         board[23][20].addDoor(1, (Door) board[20][17]);
         rooms.add((Room) board[23][20]);
         doorRoomReference((Room) board[23][20]);
+
+        for (Room r : rooms) {
+            r.setCentreTile();
+        }
     }
 
     /**
@@ -174,6 +182,10 @@ public class Board {
         for (Door d : r.getDoors().values()) {
             d.setCenterTile(r);
         }
+    }
+
+    public void giveTokenChars(HashMap<String, TokenChar> tk) {
+        this.tokenChars = tk;
     }
 
     /**
@@ -201,7 +213,7 @@ public class Board {
                     System.out.print(board[i][j].toString());
                 }
 
-                if (board[i][j] instanceof Hallway) ((Hallway) board[i][j]).visited = false;
+                //if (board[i][j] instanceof Hallway) ((Hallway) board[i][j]).visited = false;
             }
         }
 
@@ -218,6 +230,27 @@ public class Board {
             for (Token t : r.getOccupants()) {
                 System.out.println("    - " + t.name);
             }
+        }
+    }
+
+    public void drawBoardGUI(Graphics2D g) {
+        for (int i = 0; i < 25; i++) {
+            for (int j = 0; j < 24; j++) {
+                board[i][j].tileGUI(g, j, i);
+            }
+        }
+
+        g.setColor(Color.black);
+        for (Room r : rooms) {
+            g.setColor(Color.orange);
+            board[r.getY()][r.getX()].tileGUI(g, r.getX(), r.getY());
+            g.setColor(Color.red);
+            g.setFont(new Font("default", Font.BOLD, 12));
+            g.drawString(r.getName(),  (r.getX()*22),  (r.getY()* 22));
+        }
+
+        for (TokenChar tk : tokenChars.values()) {
+            tk.tokenGUI(g, tk.x, tk.y);
         }
     }
 }
